@@ -13,7 +13,7 @@ public partial class User
 
     public string PasswordHash { get; set; } = null!;
 
-    public string Role { get; set; } = null!;
+    public string Role { get; set; } = "student";
 
     public string? Status { get; set; }
 
@@ -26,8 +26,16 @@ public partial class User
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
     public string? RefreshToken { get; set; }
+
     public DateTime? RefreshTokenExpiryTime { get; set; }
+
+    
+
+    public string? Gender { get; set; }
+    public string? Address { get; set; }
+    public DateOnly DateOfBirth { get; set; }
 
     public virtual ICollection<FeedbackReply> FeedbackReplies { get; set; } = new List<FeedbackReply>();
 

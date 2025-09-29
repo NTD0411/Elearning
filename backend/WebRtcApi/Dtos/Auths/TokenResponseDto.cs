@@ -1,4 +1,4 @@
-﻿namespace WebRtcApi.Dtos
+﻿namespace WebRtcApi.Dtos.Auths
 {
     public class TokenResponseDto
     {
