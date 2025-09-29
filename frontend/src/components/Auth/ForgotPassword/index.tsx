@@ -2,46 +2,48 @@
 import React from "react";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import axios from "axios";
 import Loader from "@/components/Common/Loader";
-import Link from "next/link";
-import Image from "next/image";
-import { getImagePrefix } from "@/utils/util";
+import Logo from "@/components/Layout/Header/Logo";
+import { AuthService } from "@/services/authService";
 
-const ForgotPassword = () => {
+interface ForgotPasswordProps {
+  onSwitchToSignIn?: () => void;
+  onSwitchToResetPassword?: (email: string) => void;
+}
+
+const ForgotPassword = ({ onSwitchToSignIn, onSwitchToResetPassword }: ForgotPasswordProps) => {
   const [email, setEmail] = useState("");
   const [loader, setLoader] = useState(false);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
-    if (!email) {
-      toast.error("Please enter your email address.");
+    if (!email.trim()) {
+      toast.error("Please enter your email address");
+      return;
+    }
 
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
       return;
     }
 
     setLoader(true);
 
     try {
-      const res = await axios.post("/api/forgot-password/reset", {
-        email: email.toLowerCase(),
-      });
-
-      if (res.status === 404) {
-        toast.error("User not found.");
-        return;
-      }
-
-      if (res.status === 200) {
-        toast.success(res.data);
-        setEmail("");
-      }
-
-      setEmail("");
+      await AuthService.forgotPassword(email);
+      toast.success("Reset OTP has been sent to your email");
       setLoader(false);
+      
+      // Switch to reset password form
+      if (onSwitchToResetPassword) {
+        onSwitchToResetPassword(email);
+      }
     } catch (error: any) {
-      toast.error(error?.response.data);
+      console.error("Forgot password error:", error);
+      toast.error(error.message || "Failed to send reset email");
       setLoader(false);
     }
   };
@@ -56,22 +58,7 @@ const ForgotPassword = () => {
               data-wow-delay=".15s"
             >
               <div className="mb-10 text-center">
-                <Link href="/" className="mx-auto inline-block max-w-[160px]">
-                  <Image
-                    src={`${getImagePrefix()}images/logo/Logo.svg`}
-                    alt="logo"
-                    width={140}
-                    height={30}
-                    className="dark:hidden"
-                  />
-                  <Image
-                    src={`${getImagePrefix()}images/logo/logo-white.svg`}
-                    alt="logo"
-                    width={140}
-                    height={30}
-                    className="hidden dark:block"
-                  />
-                </Link>
+                <Logo />
               </div>
 
               <form onSubmit={handleSubmit}>

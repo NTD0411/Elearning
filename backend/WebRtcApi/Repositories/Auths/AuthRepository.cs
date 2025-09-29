@@ -20,7 +20,9 @@ namespace WebRtcApi.Repositories.Auths
         private readonly IMemoryCache Cache = cache;
         public async Task<TokenResponseDto> LoginAsync(LoginDto request)
         {
-            var user = await context.Users.FirstOrDefaultAsync(u => u.FullName == request.FullName);
+            // Tìm user bằng FullName hoặc Email
+            var user = await context.Users.FirstOrDefaultAsync(u => 
+                u.FullName == request.FullName || u.Email == request.FullName);
 
             if (user is null)
             {
@@ -32,10 +34,7 @@ namespace WebRtcApi.Repositories.Auths
                 return null;
             }
 
-
-
             return await CreateTokenResponse(user);
-
         }
 
         private async Task<TokenResponseDto> CreateTokenResponse(User user)
@@ -191,11 +190,12 @@ namespace WebRtcApi.Repositories.Auths
 
             user.FullName = dto.FullName;
             user.Address = dto.Address;
-            user.DateOfBirth = dto.DateOfBirth;
+            if (dto.DateOfBirth.HasValue)
+                user.DateOfBirth = dto.DateOfBirth.Value;
             user.Gender = dto.Gender;
             user.Experience = dto.Experience;
             user.PortraitUrl = dto.PortraitUrl;
-            user.UpdatedAt = dto.UpdatedAt;
+            user.UpdatedAt = dto.UpdatedAt ?? DateTime.UtcNow;
 
             await context.SaveChangesAsync();
             return user;
