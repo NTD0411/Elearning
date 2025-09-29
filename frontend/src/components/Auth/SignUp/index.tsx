@@ -1,5 +1,4 @@
 ﻿"use client";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import SocialSignUp from "../SocialSignUp";
@@ -130,9 +129,12 @@ const SignUp = ({ onSwitchToSignIn, onSwitchToOTP }: SignUpProps) => {
 
       <p className="text-body-secondary text-white text-base">
         Already have an account?
-        <Link href="/" className="pl-2 text-primary hover:underline">
+        <button 
+          onClick={onSwitchToSignIn}
+          className="pl-2 text-primary hover:underline bg-transparent border-none cursor-pointer"
+        >
           Sign In
-        </Link>
+        </button>
       </p>
     </>
   );

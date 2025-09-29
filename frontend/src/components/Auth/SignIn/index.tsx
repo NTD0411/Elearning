@@ -1,6 +1,5 @@
 "use client";
 import { signIn, getSession } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -11,9 +10,10 @@ import Loader from "@/components/Common/Loader";
 interface SignInProps {
   onSwitchToForgotPassword?: () => void;
   onLoginSuccess?: () => void;
+  onSwitchToSignUp?: () => void;
 }
 
-const Signin = ({ onSwitchToForgotPassword, onLoginSuccess }: SignInProps) => {
+const Signin = ({ onSwitchToForgotPassword, onLoginSuccess, onSwitchToSignUp }: SignInProps) => {
   const router = useRouter();
 
   const [loginData, setLoginData] = useState({
@@ -123,9 +123,12 @@ const Signin = ({ onSwitchToForgotPassword, onLoginSuccess }: SignInProps) => {
       </button>
       <p className="text-body-secondary text-black dark:text-white text-base">
         Not a member yet?{" "}
-        <Link href="/" className="text-primary hover:underline">
+        <button 
+          onClick={onSwitchToSignUp}
+          className="text-primary hover:underline bg-transparent border-none cursor-pointer"
+        >
           Sign Up
-        </Link>
+        </button>
       </p>
     </>
   );

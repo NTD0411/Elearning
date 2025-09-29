@@ -167,6 +167,10 @@ const Header: React.FC = () => {
                     onLoginSuccess={() => {
                       setIsSignInOpen(false);
                     }}
+                    onSwitchToSignUp={() => {
+                      setIsSignInOpen(false);
+                      setIsSignUpOpen(true);
+                    }}
                   />
                 </div>
               </div>
