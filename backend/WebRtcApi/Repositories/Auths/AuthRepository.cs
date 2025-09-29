@@ -6,14 +6,19 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using WebRtcApi.Data;
-using WebRtcApi.Dtos;
+using WebRtcApi.Dtos.Auths;
+using WebRtcApi.Dtos.Profile;
 using WebRtcApi.Models;
+using WebRtcApi.Services.Mail;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace WebRtcApi.Repositories.Auths
 {
-    public class AuthRepository(DatabaseContext context, IConfiguration configuration) : IAuthRepository
+    public class AuthRepository(DatabaseContext context, IConfiguration configuration, IMailService mailService, IMemoryCache cache) : IAuthRepository
     {
-        public async Task<TokenResponseDto> LoginAsync(UserDto request)
+        private readonly IMailService MailService = mailService;
+        private readonly IMemoryCache Cache = cache;
+        public async Task<TokenResponseDto> LoginAsync(LoginDto request)
         {
             var user = await context.Users.FirstOrDefaultAsync(u => u.FullName == request.FullName);
 
@@ -42,28 +47,70 @@ namespace WebRtcApi.Repositories.Auths
             };
         }
 
-        public async Task<User> RegisterAsync(UserDto request)
+        public async Task<User> RegisterAsync(RegisterDto request)
         {
-            if(await context.Users.AnyAsync(u => u.FullName == request.FullName))
+            if (request.Password != request.ConfirmPassword)
             {
-                return null;
+                throw new Exception("Password and ConfirmPassword do not match.");
             }
+
+            // Check username trùng
+            if (await context.Users.AnyAsync(u => u.FullName == request.FullName))
+            {
+                throw new Exception("FullName is already taken.");
+            }
+
+            // Check email trùng
+            if (await context.Users.AnyAsync(u => u.Email == request.Email))
+            {
+                throw new Exception("Email is already registered.");
+            }
+
 
             var user = new User();
 
 
             var hashedPassword = new PasswordHasher<User>()
-                .HashPassword(user, request.PasswordHash);
+                .HashPassword(user, request.Password);
 
             user.FullName = request.FullName;
             user.Email = request.Email;
             user.PasswordHash = hashedPassword;
+            user.Role = "student";
 
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
+            // Sinh OTP và lưu vào cache với TTL 10 phút
+            var otpCode = new Random().Next(100000, 999999).ToString();
+            Cache.Set($"register_otp:{user.UserId}", otpCode, TimeSpan.FromMinutes(10));
+
+            // Gửi mail
+            await MailService.SendEmailAsync(user.Email, "Confirm your registration", $"Your OTP code is: {otpCode}");
+
+
             return user;
         }
+
+        public async Task<bool> ConfirmRegisterAsync(int userId, string otpCode)
+        {
+            if (!Cache.TryGetValue<string>($"register_otp:{userId}", out var cachedOtp) || cachedOtp != otpCode)
+            {
+                return false;
+            }
+
+            // OTP đúng => có thể set user.Approved = true
+            var user = await context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                user.Approved = true;
+                await context.SaveChangesAsync();
+            }
+
+            Cache.Remove($"register_otp:{userId}");
+            return true;
+        }
+
 
         public async Task<TokenResponseDto?> RefreshTokensAsync(RefreshTokenRequestDto request)
         {
@@ -71,6 +118,12 @@ namespace WebRtcApi.Repositories.Auths
             if(user is null)
             {
                 return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(user.Role))
+            {
+                user.Role = "student";
+                await context.SaveChangesAsync();
             }
 
             return await CreateTokenResponse(user);
@@ -131,6 +184,54 @@ namespace WebRtcApi.Repositories.Auths
             return user;
         }
 
-        
+        public async Task<User?> UpdateProfileAsync(int userId, UpdateProfileDto dto)
+        {
+            var user = await context.Users.FindAsync(userId);
+            if (user == null) return null;
+
+            user.FullName = dto.FullName;
+            user.Address = dto.Address;
+            user.DateOfBirth = dto.DateOfBirth;
+            user.Gender = dto.Gender;
+            user.Experience = dto.Experience;
+            user.PortraitUrl = dto.PortraitUrl;
+            user.UpdatedAt = dto.UpdatedAt;
+
+            await context.SaveChangesAsync();
+            return user;
+        }
+
+        public async Task<bool> ForgotPasswordAsync(string email)
+        {
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null) return false;
+
+            var otp = new Random().Next(100000, 999999).ToString();
+            Cache.Set($"reset_otp:{email}", otp, TimeSpan.FromMinutes(10));
+
+            await MailService.SendEmailAsync(email, "Password Reset OTP", $"Your OTP: {otp}");
+            return true;
+        }
+
+        public async Task<bool> ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (user == null)
+                return false;
+
+            if (!Cache.TryGetValue<string>($"reset_otp:{dto.Email}", out var cachedOtp) || cachedOtp != dto.Otp)
+                return false;
+
+            if (dto.NewPassword != dto.ConfirmNewPassword)
+                return false;
+
+            user.PasswordHash = new PasswordHasher<User>().HashPassword(user, dto.NewPassword);
+
+            await context.SaveChangesAsync();
+            Cache.Remove($"reset_otp:{dto.Email}");
+            return true;
+        }
+
+
     }
 }
