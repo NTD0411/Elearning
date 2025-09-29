@@ -1,5 +1,5 @@
 "use client";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -8,7 +8,12 @@ import SocialSignIn from "../SocialSignIn";
 import Logo from "@/components/Layout/Header/Logo"
 import Loader from "@/components/Common/Loader";
 
-const Signin = () => {
+interface SignInProps {
+  onSwitchToForgotPassword?: () => void;
+  onLoginSuccess?: () => void;
+}
+
+const Signin = ({ onSwitchToForgotPassword, onLoginSuccess }: SignInProps) => {
   const router = useRouter();
 
   const [loginData, setLoginData] = useState({
@@ -18,30 +23,50 @@ const Signin = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  const loginUser = (e: any) => {
+  const loginUser = async (e: any) => {
     e.preventDefault();
 
-    setLoading(true);
-    signIn("credentials", { ...loginData, redirect: false })
-      .then((callback) => {
-        if (callback?.error) {
-          toast.error(callback?.error);
-          console.log(callback?.error);
-          setLoading(false);
-          return;
-        }
+    if (!loginData.email || !loginData.password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
 
-        if (callback?.ok && !callback?.error) {
-          toast.success("Login successful");
-          setLoading(false);
-          router.push("/");
-        }
-      })
-      .catch((err) => {
-        setLoading(false);
-        console.log(err.message);
-        toast.error(err.message);
+    setLoading(true);
+    
+    try {
+      const result = await signIn("credentials", {
+        email: loginData.email,
+        password: loginData.password,
+        redirect: false,
       });
+
+      if (result?.error) {
+        toast.error(result.error);
+        console.log(result.error);
+        setLoading(false);
+        return;
+      }
+
+      if (result?.ok && !result?.error) {
+        // Lấy session để kiểm tra token
+        const session = await getSession();
+        console.log("Login successful, session:", session);
+        
+        toast.success("Login successful");
+        setLoading(false);
+        
+        // Close the modal
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
+        
+        router.push("/");
+      }
+    } catch (error: any) {
+      setLoading(false);
+      console.error("Login error:", error);
+      toast.error(error.message || "Login failed");
+    }
   };
 
   return (
@@ -66,7 +91,7 @@ const Signin = () => {
             onChange={(e) =>
               setLoginData({ ...loginData, email: e.target.value })
             }
-            className="w-full rounded-md border border-black/20 border-solid bg-transparent px-5 py-3 text-base text-dark outline-none transition placeholder:text-grey focus:border-primary focus-visible:shadow-none text-white dark:focus:border-primary"
+            className="w-full rounded-md border border-black/20 border-solid bg-transparent px-5 py-3 text-base text-dark outline-none transition placeholder:text-grey focus:border-primary focus-visible:shadow-none text-black dark:text-white dark:focus:border-primary"
           />
         </div>
         <div className="mb-[22px]">
@@ -76,7 +101,7 @@ const Signin = () => {
             onChange={(e) =>
               setLoginData({ ...loginData, password: e.target.value })
             }
-            className="w-full rounded-md border border-black/20 border-solid bg-transparent px-5 py-3 text-base text-dark outline-none transition placeholder:text-grey focus:border-primary focus-visible:shadow-none text-white dark:focus:border-primary"
+            className="w-full rounded-md border border-black/20 border-solid bg-transparent px-5 py-3 text-base text-dark outline-none transition placeholder:text-grey focus:border-primary focus-visible:shadow-none text-black dark:text-white dark:focus:border-primary"
           />
         </div>
         <div className="mb-9">
@@ -90,13 +115,13 @@ const Signin = () => {
         </div>
       </form>
 
-      <Link
-        href="/forgot-password"
-        className="mb-2 inline-block text-base text-dark hover:text-primary text-white dark:hover:text-primary"
+      <button
+        onClick={onSwitchToForgotPassword}
+        className="mb-2 inline-block text-base text-dark hover:text-primary text-black dark:text-white dark:hover:text-primary"
       >
         Forgot Password?
-      </Link>
-      <p className="text-body-secondary text-white text-base">
+      </button>
+      <p className="text-body-secondary text-black dark:text-white text-base">
         Not a member yet?{" "}
         <Link href="/" className="text-primary hover:underline">
           Sign Up

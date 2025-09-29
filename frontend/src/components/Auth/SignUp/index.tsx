@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -6,35 +6,53 @@ import SocialSignUp from "../SocialSignUp";
 import Logo from "@/components/Layout/Header/Logo";
 import { useState } from "react";
 import Loader from "@/components/Common/Loader";
-const SignUp = () => {
+import { AuthService } from "@/services/authService";
+
+interface SignUpProps {
+  onSwitchToSignIn?: () => void;
+  onSwitchToOTP?: (email: string, userId: number) => void;
+}
+
+const SignUp = ({ onSwitchToSignIn, onSwitchToOTP }: SignUpProps) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-
     setLoading(true);
+
     const data = new FormData(e.currentTarget);
     const value = Object.fromEntries(data.entries());
-    const finalData = { ...value };
 
-    fetch("/api/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(finalData),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        toast.success("Successfully registered");
-        setLoading(false);
-        router.push("/signin");
-      })
-      .catch((err) => {
-        toast.error(err.message);
-        setLoading(false);
-      });
+    // Validate confirm password
+    if (value.password !== value.confirmPassword) {
+      toast.error("Passwords do not match!");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const registerData = {
+        FullName: value.name as string,
+        Email: value.email as string,
+        Password: value.password as string,
+        ConfirmPassword: value.confirmPassword as string,
+      };
+
+      const result = await AuthService.register(registerData);
+      
+      toast.success("Registration successful! Please verify your OTP.");
+      setLoading(false);
+      
+      // Switch to OTP verification instead of Sign In
+      if (onSwitchToOTP && result.userId) {
+        onSwitchToOTP(registerData.Email, result.userId);
+      }
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      toast.error(error.message || "Registration failed");
+      setLoading(false);
+    }
   };
 
   return (
@@ -58,7 +76,7 @@ const SignUp = () => {
             placeholder="Name"
             name="name"
             required
-            className="w-full rounded-md border border-black/20 border-solid bg-transparent px-5 py-3 text-base text-dark outline-none transition placeholder:text-grey focus:border-primary focus-visible:shadow-none text-white dark:focus:border-primary"
+            className="w-full rounded-md border border-black/20 border-solid bg-transparent px-5 py-3 text-base text-black outline-none transition placeholder:text-grey focus:border-primary focus-visible:shadow-none dark:text-white dark:focus:border-primary"
           />
         </div>
         <div className="mb-[22px]">
@@ -67,7 +85,7 @@ const SignUp = () => {
             placeholder="Email"
             name="email"
             required
-            className="w-full rounded-md border border-black/20 border-solid bg-transparent px-5 py-3 text-base text-dark outline-none transition placeholder:text-grey focus:border-primary focus-visible:shadow-none text-white dark:focus:border-primary"
+            className="w-full rounded-md border border-black/20 border-solid bg-transparent px-5 py-3 text-base text-black outline-none transition placeholder:text-grey focus:border-primary focus-visible:shadow-none dark:text-white dark:focus:border-primary"
           />
         </div>
         <div className="mb-[22px]">
@@ -76,13 +94,23 @@ const SignUp = () => {
             placeholder="Password"
             name="password"
             required
-            className="w-full rounded-md border border-black/20 border-solid bg-transparent px-5 py-3 text-base text-dark outline-none transition placeholder:text-grey focus:border-primary focus-visible:shadow-none text-white dark:focus:border-primary"
+            className="w-full rounded-md border border-black/20 border-solid bg-transparent px-5 py-3 text-base text-black outline-none transition placeholder:text-grey focus:border-primary focus-visible:shadow-none dark:text-white dark:focus:border-primary"
+          />
+        </div>
+        <div className="mb-[22px]">
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            name="confirmPassword"
+            required
+            className="w-full rounded-md border border-black/20 border-solid bg-transparent px-5 py-3 text-base text-black outline-none transition placeholder:text-grey focus:border-primary focus-visible:shadow-none dark:text-white dark:focus:border-primary"
           />
         </div>
         <div className="mb-9">
           <button
             type="submit"
-            className="flex w-full items-center text-18 font-medium justify-center rounded-md bg-primary px-5 py-3 text-darkmode transition duration-300 ease-in-out hover:bg-transparent hover:text-primary border-primary border "
+            disabled={loading}
+            className="flex w-full items-center text-18 font-medium justify-center rounded-md bg-primary px-5 py-3 text-darkmode transition duration-300 ease-in-out hover:bg-transparent hover:text-primary border-primary border disabled:opacity-50"
           >
             Sign Up {loading && <Loader />}
           </button>

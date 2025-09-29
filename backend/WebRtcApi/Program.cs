@@ -43,7 +43,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendCors", policy =>
-        policy.WithOrigins("http://localhost:3000")
+        policy.WithOrigins("http://localhost:3000", "http://localhost:3001")
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
@@ -58,10 +58,12 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-app.UseHttpsRedirection();
+// Comment out HTTPS redirection for development
+// app.UseHttpsRedirection();
 
 app.UseCors("FrontendCors");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

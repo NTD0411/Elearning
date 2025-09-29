@@ -94,7 +94,7 @@ namespace WebRtcApi.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("FeedbackReplies");
+                    b.ToTable("FeedbackReplies", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.ListeningExam", b =>
@@ -162,7 +162,7 @@ namespace WebRtcApi.Migrations
 
                     b.HasIndex("ExamSetId");
 
-                    b.ToTable("ListeningExams");
+                    b.ToTable("ListeningExams", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.ListeningExamSet", b =>
@@ -199,7 +199,7 @@ namespace WebRtcApi.Migrations
                     b.HasKey("ExamSetId")
                         .HasName("PK__Listenin__A17B929E0671B6BC");
 
-                    b.ToTable("ListeningExamSets");
+                    b.ToTable("ListeningExamSets", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.MentorPackage", b =>
@@ -245,7 +245,7 @@ namespace WebRtcApi.Migrations
 
                     b.HasIndex("CreatedBy");
 
-                    b.ToTable("MentorPackages");
+                    b.ToTable("MentorPackages", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.Rating", b =>
@@ -287,7 +287,7 @@ namespace WebRtcApi.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("Ratings");
+                    b.ToTable("Ratings", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.ReadingExam", b =>
@@ -350,7 +350,7 @@ namespace WebRtcApi.Migrations
 
                     b.HasIndex("ExamSetId");
 
-                    b.ToTable("ReadingExams");
+                    b.ToTable("ReadingExams", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.ReadingExamSet", b =>
@@ -387,7 +387,7 @@ namespace WebRtcApi.Migrations
                     b.HasKey("ExamSetId")
                         .HasName("PK__ReadingE__A17B929E4482E5F5");
 
-                    b.ToTable("ReadingExamSets");
+                    b.ToTable("ReadingExamSets", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.SpeakingExam", b =>
@@ -419,7 +419,7 @@ namespace WebRtcApi.Migrations
 
                     b.HasIndex("ExamSetId");
 
-                    b.ToTable("SpeakingExams");
+                    b.ToTable("SpeakingExams", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.SpeakingExamSet", b =>
@@ -456,7 +456,7 @@ namespace WebRtcApi.Migrations
                     b.HasKey("ExamSetId")
                         .HasName("PK__Speaking__A17B929E81B9EAEC");
 
-                    b.ToTable("SpeakingExamSets");
+                    b.ToTable("SpeakingExamSets", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.Submission", b =>
@@ -541,7 +541,7 @@ namespace WebRtcApi.Migrations
 
                     b.HasIndex("WritingExamSetId");
 
-                    b.ToTable("Submissions");
+                    b.ToTable("Submissions", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.Tip", b =>
@@ -577,7 +577,7 @@ namespace WebRtcApi.Migrations
 
                     b.HasIndex("MentorId");
 
-                    b.ToTable("Tips");
+                    b.ToTable("Tips", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.Transaction", b =>
@@ -621,7 +621,7 @@ namespace WebRtcApi.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.User", b =>
@@ -711,7 +711,7 @@ namespace WebRtcApi.Migrations
                     b.HasIndex(new[] { "Email" }, "UQ__Users__AB6E6164878D058A")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.WritingExam", b =>
@@ -743,7 +743,7 @@ namespace WebRtcApi.Migrations
 
                     b.HasIndex("ExamSetId");
 
-                    b.ToTable("WritingExams");
+                    b.ToTable("WritingExams", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.WritingExamSet", b =>
@@ -780,7 +780,7 @@ namespace WebRtcApi.Migrations
                     b.HasKey("ExamSetId")
                         .HasName("PK__WritingE__A17B929E054A746A");
 
-                    b.ToTable("WritingExamSets");
+                    b.ToTable("WritingExamSets", (string)null);
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.Feedback", b =>

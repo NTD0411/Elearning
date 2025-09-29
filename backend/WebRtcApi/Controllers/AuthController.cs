@@ -21,6 +21,13 @@ namespace WebRtcApi.Controllers
     public class AuthController(IAuthRepository authRepository) : ControllerBase
     {
         public static User user =new();
+
+        [HttpGet("health")]
+        public IActionResult HealthCheck()
+        {
+            return Ok(new { status = "healthy", timestamp = DateTime.UtcNow });
+        }
+
         [HttpPost("register")]
         public async Task<ActionResult<User>> Register(RegisterDto request)
         {
@@ -67,8 +74,15 @@ namespace WebRtcApi.Controllers
 
         [Authorize]
         [HttpPut("update-profile")]
-        public async Task<ActionResult<User>> UpdateProfile(int userId, UpdateProfileDto dto)
+        public async Task<ActionResult<User>> UpdateProfile([FromBody] UpdateProfileDto dto)
         {
+            // Get user ID from JWT claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized("Invalid user token.");
+            }
+
             var updatedUser = await authRepository.UpdateProfileAsync(userId, dto);
             if (updatedUser is null)
                 return NotFound("User not found.");
