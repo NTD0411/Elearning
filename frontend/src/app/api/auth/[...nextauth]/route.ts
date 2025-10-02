@@ -34,10 +34,17 @@ const handler = NextAuth({
 
           const data = await response.json()
           
-          // Return user object with tokens
+          // Return user object with tokens và thông tin user
           return {
-            id: data.userId || '1',
-            email: credentials.email,
+            id: data.user?.id?.toString() || '1',
+            email: data.user?.email || credentials.email,
+            name: data.user?.fullName || '',
+            fullName: data.user?.fullName || '',
+            portraitUrl: data.user?.portraitUrl || '',
+            experience: data.user?.experience || '',
+            gender: data.user?.gender || '',
+            address: data.user?.address || '',
+            dateOfBirth: data.user?.dateOfBirth || '',
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
           }
@@ -57,6 +64,12 @@ const handler = NextAuth({
         token.accessToken = (user as any).accessToken
         token.refreshToken = (user as any).refreshToken
         token.userId = user.id
+        token.fullName = (user as any).fullName
+        token.portraitUrl = (user as any).portraitUrl
+        token.experience = (user as any).experience
+        token.gender = (user as any).gender
+        token.address = (user as any).address
+        token.dateOfBirth = (user as any).dateOfBirth
       }
       return token
     },
@@ -65,6 +78,12 @@ const handler = NextAuth({
         (session as any).accessToken = token.accessToken;
         (session as any).refreshToken = token.refreshToken;
         (session as any).userId = token.userId;
+        (session.user as any).fullName = token.fullName;
+        (session.user as any).portraitUrl = token.portraitUrl;
+        (session.user as any).experience = token.experience;
+        (session.user as any).gender = token.gender;
+        (session.user as any).address = token.address;
+        (session.user as any).dateOfBirth = token.dateOfBirth;
       }
       return session
     },

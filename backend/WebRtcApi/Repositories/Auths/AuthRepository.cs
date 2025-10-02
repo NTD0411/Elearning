@@ -42,7 +42,18 @@ namespace WebRtcApi.Repositories.Auths
             return new TokenResponseDto
             {
                 AccessToken = CreateToken(user),
-                RefreshToken = await GenerateAndSaveRefreshTokenAsync(user)
+                RefreshToken = await GenerateAndSaveRefreshTokenAsync(user),
+                User = new UserDto
+                {
+                    Id = user.UserId,
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    PortraitUrl = user.PortraitUrl,
+                    Experience = user.Experience,
+                    Gender = user.Gender,
+                    Address = user.Address,
+                    DateOfBirth = user.DateOfBirth != default(DateOnly) ? user.DateOfBirth.ToDateTime(TimeOnly.MinValue) : null
+                }
             };
         }
 
