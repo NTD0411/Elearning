@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "Xm9D5wWWpi6JfCld0zPduEioibLJhLSsZM5hjtUAaOI=",
+  "Source": "WebRtcApi",
+  "BasePath": "_content/WebRtcApi",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
