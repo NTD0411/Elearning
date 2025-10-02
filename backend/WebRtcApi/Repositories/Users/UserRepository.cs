@@ -220,5 +220,86 @@ namespace WebRtcApi.Repositories.Users
             await _context.SaveChangesAsync();
             return true;
         }
+
+        // Mentor Management Methods
+        public async Task<List<MentorManagementDto>> GetMentorManagementListAsync()
+        {
+            return await _context.Users
+                .Where(u => u.Role == "mentor")
+                .Select(u => new MentorManagementDto
+                {
+                    UserId = u.UserId,
+                    FullName = u.FullName,
+                    Email = u.Email,
+                    Status = u.Status ?? "Active",
+                    Approved = u.Approved,
+                    Experience = u.Experience,
+                    PortraitUrl = u.PortraitUrl,
+                    CreatedAt = u.CreatedAt,
+                    UpdatedAt = u.UpdatedAt,
+                    TotalStudents = 0, // TODO: Calculate from relationships
+                    AverageRating = 0.0m // TODO: Calculate from ratings
+                })
+                .OrderByDescending(u => u.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<MentorManagementDto?> GetMentorManagementByIdAsync(int userId)
+        {
+            return await _context.Users
+                .Where(u => u.UserId == userId && u.Role == "mentor")
+                .Select(u => new MentorManagementDto
+                {
+                    UserId = u.UserId,
+                    FullName = u.FullName,
+                    Email = u.Email,
+                    Status = u.Status ?? "Active",
+                    Approved = u.Approved,
+                    Experience = u.Experience,
+                    PortraitUrl = u.PortraitUrl,
+                    CreatedAt = u.CreatedAt,
+                    UpdatedAt = u.UpdatedAt,
+                    TotalStudents = 0, // TODO: Calculate from relationships
+                    AverageRating = 0.0m // TODO: Calculate from ratings
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> BanMentorAsync(int userId, string reason, DateTime? banUntil = null)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null || user.Role != "mentor") return false;
+
+            user.Status = "Banned";
+            user.UpdatedAt = DateTime.UtcNow;
+            // Có thể lưu reason vào Experience field hoặc tạo log riêng
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> UnbanMentorAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null || user.Role != "mentor") return false;
+
+            user.Status = "Active";
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdateMentorStatusAsync(int userId, MentorStatusUpdateDto statusUpdate)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null || user.Role != "mentor") return false;
+
+            user.Status = statusUpdate.Status;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

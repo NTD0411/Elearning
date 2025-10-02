@@ -14,5 +14,12 @@ namespace WebRtcApi.Repositories.Users
         Task<bool> UpdateUserRoleAsync(int userId, string role);
         Task<bool> ApproveUserAsync(int userId, bool approved);
         Task<bool> DeleteUserAsync(int userId);
+        
+        // Mentor Management
+        Task<List<MentorManagementDto>> GetMentorManagementListAsync();
+        Task<MentorManagementDto?> GetMentorManagementByIdAsync(int userId);
+        Task<bool> BanMentorAsync(int userId, string reason, DateTime? banUntil = null);
+        Task<bool> UnbanMentorAsync(int userId);
+        Task<bool> UpdateMentorStatusAsync(int userId, MentorStatusUpdateDto statusUpdate);
     }
 }
