@@ -1,11 +1,14 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { TipService, Tip, CreateTipRequest, UpdateTipRequest } from "@/services/tipService";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 export default function TipsPage() {
+  const router = useRouter();
   const { user, isAuthenticated, accessToken } = useAuth();
   const [tips, setTips] = useState<Tip[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -133,7 +136,7 @@ export default function TipsPage() {
   };
 
   return (
-    <main className="pt-24 pb-16">
+  <main className="pt-32 pb-16">
       <div className="container mx-auto lg:max-w-screen-xl md:max-w-screen-md px-4">
         {/* Header Section */}
         <div className="text-center mb-12">
@@ -190,21 +193,26 @@ export default function TipsPage() {
               </div>
             ) : (
               filteredTips.map((tip) => (
-                <div key={tip.tipId} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start mb-4">
+                <div
+                  key={tip.tipId}
+                  className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => router.push(`/tips/${tip.tipId}`)}
+                >
+                  <div className="flex justify-between items-center mb-2">
                     <h2 className="text-xl font-semibold text-gray-900 flex-1">
                       {tip.title}
                     </h2>
                     {isMentor && (
                       <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => setEditingTip(tip)}
+                        <Link
+                          href={`/tips/${tip.tipId}?edit=true`}
+                          onClick={(e) => e.stopPropagation()}
                           className="text-blue-600 hover:text-blue-800 p-1"
                         >
                           <Icon icon="tabler:edit" className="text-lg" />
-                        </button>
+                        </Link>
                         <button
-                          onClick={() => handleDeleteTip(tip.tipId)}
+                          onClick={e => { e.stopPropagation(); handleDeleteTip(tip.tipId); }}
                           className="text-red-600 hover:text-red-800 p-1"
                         >
                           <Icon icon="tabler:trash" className="text-lg" />
@@ -212,9 +220,6 @@ export default function TipsPage() {
                       </div>
                     )}
                   </div>
-                  <p className="text-gray-600 mb-4 line-clamp-3">
-                    {tip.content}
-                  </p>
                   <div className="flex justify-between items-center text-sm text-gray-500">
                     <span>By {tip.mentorFullName}</span>
                     <span>{formatDate(tip.createdAt)}</span>

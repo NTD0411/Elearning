@@ -44,19 +44,21 @@ const UserProfile = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className="flex items-center space-x-2 p-2 rounded-lg hover:bg-primary/10 transition-colors"
+        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
       >
-        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-          <span className="text-white text-sm font-medium">
+        <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+          <span className="text-white text-base font-medium">
             {user.email?.charAt(0).toUpperCase()}
           </span>
         </div>
-        <span className="hidden lg:block text-white dark:text-white">
-          {user.email}
-        </span>
+        <div className="hidden lg:block">
+          <div className="text-gray-900 dark:text-gray-100 font-medium">
+            {(user as any)?.fullName || user?.name || "User"}
+          </div>
+        </div>
         <Icon
           icon={isDropdownOpen ? "heroicons:chevron-up" : "heroicons:chevron-down"}
-          className="text-white w-4 h-4"
+          className="text-gray-600 dark:text-gray-400 w-5 h-5"
         />
       </button>
 
