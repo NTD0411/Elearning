@@ -1,0 +1,241 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using WebRtcApi.Data;
+using WebRtcApi.Models;
+
+namespace WebRtcApi.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ExamSetController : ControllerBase
+    {
+        private readonly DatabaseContext _context;
+
+        public ExamSetController(DatabaseContext context)
+        {
+            _context = context;
+        }
+
+        // GET: api/ExamSet/reading
+        [HttpGet("reading")]
+        public async Task<ActionResult<IEnumerable<object>>> GetReadingExamSets()
+        {
+            var examSets = await _context.ReadingExamSets
+                .Select(r => new
+                {
+                    r.ExamSetId,
+                    r.ExamSetTitle,
+                    r.ExamSetCode,
+                    r.CreatedAt,
+                    r.TotalQuestions,
+                    QuestionCount = _context.ReadingExams.Count(e => e.ExamSetId == r.ExamSetId),
+                    Type = "Reading"
+                })
+                .ToListAsync();
+
+            return Ok(examSets);
+        }
+
+        // GET: api/ExamSet/listening
+        [HttpGet("listening")]
+        public async Task<ActionResult<IEnumerable<object>>> GetListeningExamSets()
+        {
+            var examSets = await _context.ListeningExamSets
+                .Select(l => new
+                {
+                    l.ExamSetId,
+                    l.ExamSetTitle,
+                    l.ExamSetCode,
+                    l.CreatedAt,
+                    l.TotalQuestions,
+                    QuestionCount = _context.ListeningExams.Count(e => e.ExamSetId == l.ExamSetId),
+                    Type = "Listening"
+                })
+                .ToListAsync();
+
+            return Ok(examSets);
+        }
+
+        // GET: api/ExamSet/speaking
+        [HttpGet("speaking")]
+        public async Task<ActionResult<IEnumerable<object>>> GetSpeakingExamSets()
+        {
+            var examSets = await _context.SpeakingExamSets
+                .Select(s => new
+                {
+                    s.ExamSetId,
+                    s.ExamSetTitle,
+                    s.ExamSetCode,
+                    s.CreatedAt,
+                    s.TotalQuestions,
+                    QuestionCount = _context.SpeakingExams.Count(e => e.ExamSetId == s.ExamSetId),
+                    Type = "Speaking"
+                })
+                .ToListAsync();
+
+            return Ok(examSets);
+        }
+
+        // GET: api/ExamSet/writing
+        [HttpGet("writing")]
+        public async Task<ActionResult<IEnumerable<object>>> GetWritingExamSets()
+        {
+            var examSets = await _context.WritingExamSets
+                .Select(w => new
+                {
+                    w.ExamSetId,
+                    w.ExamSetTitle,
+                    w.ExamSetCode,
+                    w.CreatedAt,
+                    w.TotalQuestions,
+                    QuestionCount = _context.WritingExams.Count(e => e.ExamSetId == w.ExamSetId),
+                    Type = "Writing"
+                })
+                .ToListAsync();
+
+            return Ok(examSets);
+        }
+
+        // POST: api/ExamSet/reading
+        [HttpPost("reading")]
+        public async Task<ActionResult<ReadingExamSet>> CreateReadingExamSet([FromBody] CreateExamSetRequest request)
+        {
+            var examSet = new ReadingExamSet
+            {
+                ExamSetCode = $"RS_{DateTime.Now:yyyyMMddHHmmss}",
+                ExamSetTitle = request.Title,
+                TotalQuestions = request.TargetQuestions,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.ReadingExamSets.Add(examSet);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetReadingExamSets), new { id = examSet.ExamSetId }, examSet);
+        }
+
+        // POST: api/ExamSet/listening
+        [HttpPost("listening")]
+        public async Task<ActionResult<ListeningExamSet>> CreateListeningExamSet([FromBody] CreateExamSetRequest request)
+        {
+            var examSet = new ListeningExamSet
+            {
+                ExamSetCode = $"LS_{DateTime.Now:yyyyMMddHHmmss}",
+                ExamSetTitle = request.Title,
+                TotalQuestions = request.TargetQuestions,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.ListeningExamSets.Add(examSet);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetListeningExamSets), new { id = examSet.ExamSetId }, examSet);
+        }
+
+        // POST: api/ExamSet/speaking
+        [HttpPost("speaking")]
+        public async Task<ActionResult<SpeakingExamSet>> CreateSpeakingExamSet([FromBody] CreateExamSetRequest request)
+        {
+            var examSet = new SpeakingExamSet
+            {
+                ExamSetCode = $"SS_{DateTime.Now:yyyyMMddHHmmss}",
+                ExamSetTitle = request.Title,
+                TotalQuestions = request.TargetQuestions,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.SpeakingExamSets.Add(examSet);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetSpeakingExamSets), new { id = examSet.ExamSetId }, examSet);
+        }
+
+        // POST: api/ExamSet/writing
+        [HttpPost("writing")]
+        public async Task<ActionResult<WritingExamSet>> CreateWritingExamSet([FromBody] CreateExamSetRequest request)
+        {
+            var examSet = new WritingExamSet
+            {
+                ExamSetCode = $"WS_{DateTime.Now:yyyyMMddHHmmss}",
+                ExamSetTitle = request.Title,
+                TotalQuestions = request.TargetQuestions,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.WritingExamSets.Add(examSet);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetWritingExamSets), new { id = examSet.ExamSetId }, examSet);
+        }
+
+        // DELETE: api/ExamSet/reading/{id}
+        [HttpDelete("reading/{id}")]
+        public async Task<IActionResult> DeleteReadingExamSet(int id)
+        {
+            var examSet = await _context.ReadingExamSets.FindAsync(id);
+            if (examSet == null)
+            {
+                return NotFound();
+            }
+
+            _context.ReadingExamSets.Remove(examSet);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        // DELETE: api/ExamSet/listening/{id}
+        [HttpDelete("listening/{id}")]
+        public async Task<IActionResult> DeleteListeningExamSet(int id)
+        {
+            var examSet = await _context.ListeningExamSets.FindAsync(id);
+            if (examSet == null)
+            {
+                return NotFound();
+            }
+
+            _context.ListeningExamSets.Remove(examSet);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        // DELETE: api/ExamSet/speaking/{id}
+        [HttpDelete("speaking/{id}")]
+        public async Task<IActionResult> DeleteSpeakingExamSet(int id)
+        {
+            var examSet = await _context.SpeakingExamSets.FindAsync(id);
+            if (examSet == null)
+            {
+                return NotFound();
+            }
+
+            _context.SpeakingExamSets.Remove(examSet);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        // DELETE: api/ExamSet/writing/{id}
+        [HttpDelete("writing/{id}")]
+        public async Task<IActionResult> DeleteWritingExamSet(int id)
+        {
+            var examSet = await _context.WritingExamSets.FindAsync(id);
+            if (examSet == null)
+            {
+                return NotFound();
+            }
+
+            _context.WritingExamSets.Remove(examSet);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+    }
+
+    public class CreateExamSetRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public int TargetQuestions { get; set; } = 5;
+    }
+}

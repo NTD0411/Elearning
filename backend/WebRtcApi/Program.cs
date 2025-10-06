@@ -6,6 +6,7 @@ using System.Text;
 using WebRtcApi.Data;
 using WebRtcApi.Repositories.Auths;
 using WebRtcApi.Repositories.Users;
+using WebRtcApi.Repositories.Exams;
 using WebRtcApi.Services.Mail;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +39,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IReadingExamRepository, ReadingExamRepository>();
+builder.Services.AddScoped<IListeningExamRepository, ListeningExamRepository>();
+builder.Services.AddScoped<ISpeakingExamRepository, SpeakingExamRepository>();
+builder.Services.AddScoped<IWritingExamRepository, WritingExamRepository>();
 builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddMemoryCache();
 
@@ -45,7 +50,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendCors", policy =>
-        policy.WithOrigins("http://localhost:3000")
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
@@ -64,6 +69,9 @@ if (app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 
 app.UseCors("FrontendCors");
+
+// Enable static files serving
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
