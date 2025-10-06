@@ -96,6 +96,106 @@ namespace WebRtcApi.Controllers
             return Ok(examSets);
         }
 
+        // GET: api/ExamSet/Reading/{id}
+        [HttpGet("Reading/{id}")]
+        public async Task<ActionResult<object>> GetReadingExamSet(int id)
+        {
+            var examSet = await _context.ReadingExamSets
+                .Where(r => r.ExamSetId == id)
+                .Select(r => new
+                {
+                    id = r.ExamSetId,
+                    code = r.ExamSetCode,
+                    name = r.ExamSetTitle,
+                    description = "",
+                    targetQuestions = r.TotalQuestions,
+                    questionCount = _context.ReadingExams.Count(e => e.ExamSetId == r.ExamSetId),
+                    createdAt = r.CreatedAt,
+                    type = "Reading"
+                })
+                .FirstOrDefaultAsync();
+
+            if (examSet == null)
+                return NotFound();
+
+            return Ok(examSet);
+        }
+
+        // GET: api/ExamSet/Listening/{id}
+        [HttpGet("Listening/{id}")]
+        public async Task<ActionResult<object>> GetListeningExamSet(int id)
+        {
+            var examSet = await _context.ListeningExamSets
+                .Where(l => l.ExamSetId == id)
+                .Select(l => new
+                {
+                    id = l.ExamSetId,
+                    code = l.ExamSetCode,
+                    name = l.ExamSetTitle,
+                    description = "",
+                    targetQuestions = l.TotalQuestions,
+                    questionCount = _context.ListeningExams.Count(e => e.ExamSetId == l.ExamSetId),
+                    createdAt = l.CreatedAt,
+                    type = "Listening"
+                })
+                .FirstOrDefaultAsync();
+
+            if (examSet == null)
+                return NotFound();
+
+            return Ok(examSet);
+        }
+
+        // GET: api/ExamSet/Speaking/{id}
+        [HttpGet("Speaking/{id}")]
+        public async Task<ActionResult<object>> GetSpeakingExamSet(int id)
+        {
+            var examSet = await _context.SpeakingExamSets
+                .Where(s => s.ExamSetId == id)
+                .Select(s => new
+                {
+                    id = s.ExamSetId,
+                    code = s.ExamSetCode,
+                    name = s.ExamSetTitle,
+                    description = "",
+                    targetQuestions = s.TotalQuestions,
+                    questionCount = _context.SpeakingExams.Count(e => e.ExamSetId == s.ExamSetId),
+                    createdAt = s.CreatedAt,
+                    type = "Speaking"
+                })
+                .FirstOrDefaultAsync();
+
+            if (examSet == null)
+                return NotFound();
+
+            return Ok(examSet);
+        }
+
+        // GET: api/ExamSet/Writing/{id}
+        [HttpGet("Writing/{id}")]
+        public async Task<ActionResult<object>> GetWritingExamSet(int id)
+        {
+            var examSet = await _context.WritingExamSets
+                .Where(w => w.ExamSetId == id)
+                .Select(w => new
+                {
+                    id = w.ExamSetId,
+                    code = w.ExamSetCode,
+                    name = w.ExamSetTitle,
+                    description = "",
+                    targetQuestions = w.TotalQuestions,
+                    questionCount = _context.WritingExams.Count(e => e.ExamSetId == w.ExamSetId),
+                    createdAt = w.CreatedAt,
+                    type = "Writing"
+                })
+                .FirstOrDefaultAsync();
+
+            if (examSet == null)
+                return NotFound();
+
+            return Ok(examSet);
+        }
+
         // POST: api/ExamSet/reading
         [HttpPost("reading")]
         public async Task<ActionResult<ReadingExamSet>> CreateReadingExamSet([FromBody] CreateExamSetRequest request)
