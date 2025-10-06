@@ -50,10 +50,17 @@ const navItems: NavItem[] = [
     path: "mentors",
   },
   {
+    name: "Exam Sets",
+    icon: <ListIcon />,
+    subItems: [
+      { name: "View Exam Sets", path: "exam-sets/view", pro: false },
+      { name: "Create Exam Set", path: "create-exam-set", pro: false }
+    ],
+  },
+  {
     name: "Create Question",
     icon: <ListIcon />,
     subItems: [
-      { name: "Create Exam Set", path: "create-exam-set", pro: false },
       { name: "Reading Question", path: "create-reading", pro: false },
       { name: "Listening Question", path: "create-listening", pro: false },
       { name: "Speaking Question", path: "create-speaking", pro: false },

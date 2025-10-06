@@ -19,6 +19,8 @@ import CreateListeningQuestion from "./pages/Questions/CreateListeningQuestion";
 import CreateSpeakingQuestion from "./pages/Questions/CreateSpeakingQuestion";
 import CreateWritingQuestion from "./pages/Questions/CreateWritingQuestion";
 import CreateExamSet from "./pages/ExamSets/CreateExamSet";
+import ViewExamSets from "./pages/ExamSets/ViewExamSets";
+import ExamSetDetail from "./pages/ExamSets/ExamSetDetail";
 import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
@@ -44,6 +46,8 @@ export default function App() {
             <Route path="create-speaking" element={<CreateSpeakingQuestion />} />
             <Route path="create-writing" element={<CreateWritingQuestion />} />
             <Route path="create-exam-set" element={<CreateExamSet />} />
+            <Route path="exam-sets/view" element={<ViewExamSets />} />
+            <Route path="exam-sets/:type/:id" element={<ExamSetDetail />} />
             <Route path="students" element={<StudentsManagement />} />
             <Route path="mentors" element={<MentorsManagement />} />
             <Route path="alerts" element={<Alerts />} />
