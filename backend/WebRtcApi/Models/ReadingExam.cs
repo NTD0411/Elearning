@@ -19,6 +19,18 @@ public partial class ReadingExam
 
     public string? OptionD { get; set; }
 
+    public string? OptionE { get; set; }
+
+    public string? OptionF { get; set; }
+
+    public string? OptionG { get; set; }
+
+    public string? OptionH { get; set; }
+
+    public string? ReadingContext { get; set; }
+
+    public string? ReadingImage { get; set; }
+
     public string? AnswerFill { get; set; }
 
     public string CorrectAnswer { get; set; } = null!;

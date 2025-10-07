@@ -17,5 +17,5 @@ public partial class ReadingExamSet
 
     public virtual ICollection<ReadingExam> ReadingExams { get; set; } = new List<ReadingExam>();
 
-    public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
+
 }

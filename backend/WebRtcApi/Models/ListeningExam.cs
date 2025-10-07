@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 
 namespace WebRtcApi.Models;
 
@@ -20,6 +21,16 @@ public partial class ListeningExam
     public string? OptionC { get; set; }
 
     public string? OptionD { get; set; }
+
+    public string? OptionE { get; set; }
+
+    public string? OptionF { get; set; }
+
+    public string? OptionG { get; set; }
+
+    public string? OptionH { get; set; }
+
+    public string? ListeningImage { get; set; }
 
     public string? AnswerFill { get; set; }
 

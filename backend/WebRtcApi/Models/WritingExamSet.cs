@@ -15,7 +15,10 @@ public partial class WritingExamSet
 
     public DateTime? CreatedAt { get; set; }
 
-    public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
+    public int? ExamCourseId { get; set; }
+
+    public virtual ExamCourse? ExamCourse { get; set; }
+
 
     public virtual ICollection<WritingExam> WritingExams { get; set; } = new List<WritingExam>();
 }
