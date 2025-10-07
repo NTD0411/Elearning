@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useQuestionForm } from '../../hooks/useQuestionForm';
 import { useExamSets } from '../../hooks/useExamSets';
 
@@ -17,6 +17,8 @@ interface CreateSpeakingQuestionDto {
 
 export default function SpeakingQuestionForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const examSetId = searchParams.get('examSetId');
   const { examSets, loading: examSetsLoading } = useExamSets('speaking');
 
   const {
@@ -26,6 +28,7 @@ export default function SpeakingQuestionForm() {
     handleInputChange,
     prepareSubmitData
   } = useQuestionForm<CreateSpeakingQuestionDto>({
+    examSetId: examSetId ? parseInt(examSetId) : undefined,
     questionText: '',
     correctAnswer: ''
   });

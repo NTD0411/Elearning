@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useQuestionForm } from '../../hooks/useQuestionForm';
 import { useExamSets } from '../../hooks/useExamSets';
 import QuestionTypeForm from './QuestionTypeForm';
@@ -18,6 +18,8 @@ interface CreateReadingQuestionDto {
 
 export default function ReadingQuestionForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const examSetId = searchParams.get('examSetId');
   const { examSets, loading: examSetsLoading } = useExamSets('reading');
 
   const {
@@ -32,6 +34,7 @@ export default function ReadingQuestionForm() {
     getOptionLetters,
     prepareSubmitData
   } = useQuestionForm<CreateReadingQuestionDto>({
+    examSetId: examSetId ? parseInt(examSetId) : undefined,
     questionText: '',
     optionA: '',
     optionB: '',

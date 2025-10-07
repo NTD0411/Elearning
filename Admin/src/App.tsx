@@ -21,6 +21,7 @@ import CreateWritingQuestion from "./pages/Questions/CreateWritingQuestion";
 import CreateExamSet from "./pages/ExamSets/CreateExamSet";
 import ViewExamSets from "./pages/ExamSets/ViewExamSets";
 import ExamSetDetail from "./pages/ExamSets/ExamSetDetail";
+import EditExamSet from "./pages/ExamSets/EditExamSet";
 import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
@@ -41,13 +42,19 @@ export default function App() {
             <Route path="calendar" element={<Calendar />} />
             <Route path="blank" element={<Blank />} />
             <Route path="form-elements" element={<FormElements />} />
-            <Route path="create-reading" element={<CreateReadingQuestion />} />
-            <Route path="create-listening" element={<CreateListeningQuestion />} />
-            <Route path="create-speaking" element={<CreateSpeakingQuestion />} />
-            <Route path="create-writing" element={<CreateWritingQuestion />} />
+            <Route path="questions/create-reading" element={<CreateReadingQuestion />} />
+            <Route path="questions/create-listening" element={<CreateListeningQuestion />} />
+            <Route path="questions/create-speaking" element={<CreateSpeakingQuestion />} />
+            <Route path="questions/create-writing" element={<CreateWritingQuestion />} />
+            <Route path="questions/edit-reading/:id" element={<CreateReadingQuestion />} />
+            <Route path="questions/edit-listening/:id" element={<CreateListeningQuestion />} />
+            <Route path="questions/edit-speaking/:id" element={<CreateSpeakingQuestion />} />
+            <Route path="questions/edit-writing/:id" element={<CreateWritingQuestion />} />
             <Route path="create-exam-set" element={<CreateExamSet />} />
+            <Route path="exam-sets/create" element={<CreateExamSet />} />
             <Route path="exam-sets/view" element={<ViewExamSets />} />
             <Route path="exam-sets/:type/:id" element={<ExamSetDetail />} />
+            <Route path="exam-sets/edit/:type/:id" element={<EditExamSet />} />
             <Route path="students" element={<StudentsManagement />} />
             <Route path="mentors" element={<MentorsManagement />} />
             <Route path="alerts" element={<Alerts />} />
