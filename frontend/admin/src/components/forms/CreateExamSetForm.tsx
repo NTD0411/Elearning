@@ -5,6 +5,9 @@ interface CreateExamSetDto {
   examSetTitle: string;
   examSetCode?: string;
   targetQuestions?: number;
+  readingContext?: string;
+  readingImage?: string;
+  listeningImage?: string;
 }
 
 type ExamType = 'reading' | 'listening' | 'speaking' | 'writing';
@@ -17,10 +20,16 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<ExamType>(examType);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState<CreateExamSetDto>({
     examSetTitle: '',
     examSetCode: '',
-    targetQuestions: 5
+    targetQuestions: 5,
+    readingContext: '',
+    readingImage: '',
+    listeningImage: ''
   });
 
   const getTypeInfo = (type: ExamType) => {
@@ -61,7 +70,7 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
     setSelectedType(type);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -69,20 +78,75 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
     }));
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile) return null;
+    
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', imageFile);
+      
+      const response = await fetch('http://localhost:5074/api/Upload/image', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        return result.url;
+      } else {
+        throw new Error('Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image');
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
     try {
+      // Upload image first if image is selected
+      let imageUrl = '';
+      if ((selectedType === 'reading' || selectedType === 'listening') && imageFile) {
+        imageUrl = await uploadImage() || '';
+      }
+      
+      const requestBody = {
+        title: formData.examSetTitle,
+        targetQuestions: formData.targetQuestions,
+        ...(selectedType === 'reading' && {
+          readingContext: formData.readingContext,
+          readingImage: imageUrl
+        }),
+        ...(selectedType === 'listening' && {
+          listeningImage: imageUrl
+        })
+      };
+      
       const response = await fetch(`http://localhost:5074/api/ExamSet/${selectedType}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          title: formData.examSetTitle,
-          targetQuestions: formData.targetQuestions
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (response.ok) {
@@ -176,6 +240,110 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
             If left empty, a code will be auto-generated with prefix {currentTypeInfo.prefix}_
           </p>
         </div>
+
+        {/* Reading Context - Only show for reading exam type */}
+        {selectedType === 'reading' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Reading Context
+            </label>
+            <textarea
+              name="readingContext"
+              value={formData.readingContext}
+              onChange={handleInputChange}
+              rows={8}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholder="Enter the reading passage here. This will be the text that students read before answering questions..."
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              The reading passage that students will read to answer the questions.
+            </p>
+          </div>
+        )}
+
+        {/* Reading Image - Only show for reading exam type */}
+        {selectedType === 'reading' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Reading Image (Optional)
+            </label>
+            <div className="space-y-3">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+              {imagePreview && (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="max-w-xs max-h-48 rounded-lg border border-gray-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview(null);
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+              {uploadingImage && (
+                <p className="text-blue-600 text-sm">Uploading image...</p>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Optional image to accompany the reading passage (e.g., charts, diagrams).
+            </p>
+          </div>
+        )}
+
+        {/* Listening Image - Only show for listening exam type */}
+        {selectedType === 'listening' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Listening Image (Optional)
+            </label>
+            <div className="space-y-3">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+              {imagePreview && (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="max-w-xs max-h-48 rounded-lg border border-gray-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview(null);
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+              {uploadingImage && (
+                <p className="text-blue-600 text-sm">Uploading image...</p>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Optional image to accompany the listening material (e.g., maps, diagrams, visual aids).
+            </p>
+          </div>
+        )}
 
         {/* Difficulty and Time Limit */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
