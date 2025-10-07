@@ -7,7 +7,7 @@ export default function StudentsManagement() {
   return (
     <>
       <PageMeta
-        title="Student Management | TailAdmin - Admin Dashboard"
+        title="Student Management | Elearning - Admin Dashboard"
         description="Student management page for E-learning system"
       />
       <PageBreadcrumb pageTitle="Student Management" />

@@ -7,7 +7,7 @@ export default function CreateReadingQuestion() {
   return (
     <>
       <PageMeta
-        title="Create Reading Question | TailAdmin - Admin Dashboard"
+        title="Create Reading Question | Elearning - Admin Dashboard"
         description="Create new reading comprehension questions for the E-learning system"
       />
       <PageBreadcrumb pageTitle="Create Reading Question" />

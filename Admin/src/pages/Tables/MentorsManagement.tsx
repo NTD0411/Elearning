@@ -7,7 +7,7 @@ export default function MentorsManagement() {
   return (
     <>
       <PageMeta
-        title="Mentor Management | TailAdmin - Admin Dashboard"
+        title="Mentor Management | Elearning - Admin Dashboard"
         description="Mentor management page for E-learning system"
       />
       <PageBreadcrumb pageTitle="Mentor Management" />
