@@ -14,8 +14,10 @@ public partial class ListeningExamSet
     public int TotalQuestions { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+    public int? ExamCourseId { get; set; }
 
+    public virtual ExamCourse? ExamCourse { get; set; }
     public virtual ICollection<ListeningExam> ListeningExams { get; set; } = new List<ListeningExam>();
 
-    public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
+    
 }

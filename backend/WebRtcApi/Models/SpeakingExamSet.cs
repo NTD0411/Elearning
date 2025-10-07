@@ -15,7 +15,11 @@ public partial class SpeakingExamSet
 
     public DateTime? CreatedAt { get; set; }
 
+    public int? ExamCourseId { get; set; }
+
+    public virtual ExamCourse? ExamCourse { get; set; }
+
     public virtual ICollection<SpeakingExam> SpeakingExams { get; set; } = new List<SpeakingExam>();
 
-    public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
+ 
 }

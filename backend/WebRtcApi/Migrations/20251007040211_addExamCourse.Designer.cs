@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebRtcApi.Data;
 
@@ -11,9 +12,11 @@ using WebRtcApi.Data;
 namespace WebRtcApi.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20251007040211_addExamCourse")]
+    partial class addExamCourse
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -571,12 +574,21 @@ namespace WebRtcApi.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("answer_text");
 
-                    b.Property<int>("ExamCourseId")
-                        .HasColumnType("int");
+                    b.Property<int?>("ListeningExamSetId")
+                        .HasColumnType("int")
+                        .HasColumnName("listening_exam_set_id");
 
                     b.Property<decimal?>("MentorScore")
                         .HasColumnType("decimal(4, 2)")
                         .HasColumnName("mentor_score");
+
+                    b.Property<int?>("ReadingExamSetId")
+                        .HasColumnType("int")
+                        .HasColumnName("reading_exam_set_id");
+
+                    b.Property<int?>("SpeakingExamSetId")
+                        .HasColumnType("int")
+                        .HasColumnName("speaking_exam_set_id");
 
                     b.Property<string>("Status")
                         .ValueGeneratedOnAdd()
@@ -595,12 +607,22 @@ namespace WebRtcApi.Migrations
                         .HasColumnType("int")
                         .HasColumnName("user_id");
 
+                    b.Property<int?>("WritingExamSetId")
+                        .HasColumnType("int")
+                        .HasColumnName("writing_exam_set_id");
+
                     b.HasKey("SubmissionId")
                         .HasName("PK__Submissi__9B535595A47119B8");
 
-                    b.HasIndex("ExamCourseId");
+                    b.HasIndex("ListeningExamSetId");
+
+                    b.HasIndex("ReadingExamSetId");
+
+                    b.HasIndex("SpeakingExamSetId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("WritingExamSetId");
 
                     b.ToTable("Submissions");
                 });
@@ -967,20 +989,40 @@ namespace WebRtcApi.Migrations
 
             modelBuilder.Entity("WebRtcApi.Models.Submission", b =>
                 {
-                    b.HasOne("WebRtcApi.Models.ExamCourse", "ExamCourse")
+                    b.HasOne("WebRtcApi.Models.ListeningExamSet", "ListeningExamSet")
                         .WithMany("Submissions")
-                        .HasForeignKey("ExamCourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ListeningExamSetId")
+                        .HasConstraintName("FK__Submissio__liste__5AEE82B9");
+
+                    b.HasOne("WebRtcApi.Models.ReadingExamSet", "ReadingExamSet")
+                        .WithMany("Submissions")
+                        .HasForeignKey("ReadingExamSetId")
+                        .HasConstraintName("FK__Submissio__readi__59FA5E80");
+
+                    b.HasOne("WebRtcApi.Models.SpeakingExamSet", "SpeakingExamSet")
+                        .WithMany("Submissions")
+                        .HasForeignKey("SpeakingExamSetId")
+                        .HasConstraintName("FK__Submissio__speak__5CD6CB2B");
 
                     b.HasOne("WebRtcApi.Models.User", "User")
                         .WithMany("Submissions")
                         .HasForeignKey("UserId")
                         .HasConstraintName("FK__Submissio__user___59063A47");
 
-                    b.Navigation("ExamCourse");
+                    b.HasOne("WebRtcApi.Models.WritingExamSet", "WritingExamSet")
+                        .WithMany("Submissions")
+                        .HasForeignKey("WritingExamSetId")
+                        .HasConstraintName("FK__Submissio__writi__5BE2A6F2");
+
+                    b.Navigation("ListeningExamSet");
+
+                    b.Navigation("ReadingExamSet");
+
+                    b.Navigation("SpeakingExamSet");
 
                     b.Navigation("User");
+
+                    b.Navigation("WritingExamSet");
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.Tip", b =>
@@ -1037,8 +1079,6 @@ namespace WebRtcApi.Migrations
 
                     b.Navigation("SpeakingExamSets");
 
-                    b.Navigation("Submissions");
-
                     b.Navigation("WritingExamSets");
                 });
 
@@ -1050,6 +1090,8 @@ namespace WebRtcApi.Migrations
             modelBuilder.Entity("WebRtcApi.Models.ListeningExamSet", b =>
                 {
                     b.Navigation("ListeningExams");
+
+                    b.Navigation("Submissions");
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.MentorPackage", b =>
@@ -1060,11 +1102,15 @@ namespace WebRtcApi.Migrations
             modelBuilder.Entity("WebRtcApi.Models.ReadingExamSet", b =>
                 {
                     b.Navigation("ReadingExams");
+
+                    b.Navigation("Submissions");
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.SpeakingExamSet", b =>
                 {
                     b.Navigation("SpeakingExams");
+
+                    b.Navigation("Submissions");
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.Submission", b =>
@@ -1093,6 +1139,8 @@ namespace WebRtcApi.Migrations
 
             modelBuilder.Entity("WebRtcApi.Models.WritingExamSet", b =>
                 {
+                    b.Navigation("Submissions");
+
                     b.Navigation("WritingExams");
                 });
 #pragma warning restore 612, 618

@@ -45,6 +45,7 @@ namespace WebRtcApi.Data
         public virtual DbSet<WritingExam> WritingExams { get; set; }
 
         public virtual DbSet<WritingExamSet> WritingExamSets { get; set; }
+        public virtual DbSet<ExamCourse> ExamCourse { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -320,12 +321,11 @@ namespace WebRtcApi.Data
                     .HasMaxLength(500)
                     .HasColumnName("answer_fill");
                 entity.Property(e => e.AnswerText).HasColumnName("answer_text");
-                entity.Property(e => e.ListeningExamSetId).HasColumnName("listening_exam_set_id");
+                
                 entity.Property(e => e.MentorScore)
                     .HasColumnType("decimal(4, 2)")
                     .HasColumnName("mentor_score");
-                entity.Property(e => e.ReadingExamSetId).HasColumnName("reading_exam_set_id");
-                entity.Property(e => e.SpeakingExamSetId).HasColumnName("speaking_exam_set_id");
+               
                 entity.Property(e => e.Status)
                     .HasMaxLength(20)
                     .HasDefaultValue("Pending")
@@ -335,27 +335,13 @@ namespace WebRtcApi.Data
                     .HasColumnType("datetime")
                     .HasColumnName("submitted_at");
                 entity.Property(e => e.UserId).HasColumnName("user_id");
-                entity.Property(e => e.WritingExamSetId).HasColumnName("writing_exam_set_id");
-
-                entity.HasOne(d => d.ListeningExamSet).WithMany(p => p.Submissions)
-                    .HasForeignKey(d => d.ListeningExamSetId)
-                    .HasConstraintName("FK__Submissio__liste__5AEE82B9");
-
-                entity.HasOne(d => d.ReadingExamSet).WithMany(p => p.Submissions)
-                    .HasForeignKey(d => d.ReadingExamSetId)
-                    .HasConstraintName("FK__Submissio__readi__59FA5E80");
-
-                entity.HasOne(d => d.SpeakingExamSet).WithMany(p => p.Submissions)
-                    .HasForeignKey(d => d.SpeakingExamSetId)
-                    .HasConstraintName("FK__Submissio__speak__5CD6CB2B");
+               
 
                 entity.HasOne(d => d.User).WithMany(p => p.Submissions)
                     .HasForeignKey(d => d.UserId)
                     .HasConstraintName("FK__Submissio__user___59063A47");
 
-                entity.HasOne(d => d.WritingExamSet).WithMany(p => p.Submissions)
-                    .HasForeignKey(d => d.WritingExamSetId)
-                    .HasConstraintName("FK__Submissio__writi__5BE2A6F2");
+                
             });
 
             modelBuilder.Entity<Tip>(entity =>
