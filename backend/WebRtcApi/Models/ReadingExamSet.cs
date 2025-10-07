@@ -12,6 +12,9 @@ public partial class ReadingExamSet
     public string ExamSetTitle { get; set; } = null!;
 
     public int TotalQuestions { get; set; }
+    public string? ReadingContext { get; set; }
+
+    public string? ReadingImage { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
