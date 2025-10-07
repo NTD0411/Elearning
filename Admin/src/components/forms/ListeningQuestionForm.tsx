@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useExamSets } from '../../hooks/useExamSets';
 
 interface CreateListeningQuestionDto {
@@ -18,6 +18,8 @@ type QuestionType = 'multiple-choice' | 'true-false' | 'fill-blank';
 
 export default function ListeningQuestionForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const examSetId = searchParams.get('examSetId');
   const { examSets, loading: examSetsLoading } = useExamSets('listening');
   const [loading, setLoading] = useState(false);
   const [questionType, setQuestionType] = useState<QuestionType>('multiple-choice');
@@ -25,6 +27,7 @@ export default function ListeningQuestionForm() {
   const [audioUploadType, setAudioUploadType] = useState<'url' | 'file'>('url');
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<CreateListeningQuestionDto>({
+    examSetId: examSetId ? parseInt(examSetId) : undefined,
     audioUrl: '',
     questionText: '',
     optionA: '',
@@ -96,6 +99,7 @@ export default function ListeningQuestionForm() {
         alert('Listening question created successfully!');
         // Reset form and file upload state
         setFormData({
+          examSetId: examSetId ? parseInt(examSetId) : undefined,
           audioUrl: '',
           questionText: '',
           optionA: '',

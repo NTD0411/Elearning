@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
+import PageMeta from '../../components/common/PageMeta';
 
 interface ExamSet {
   id: number;
@@ -79,6 +80,30 @@ export default function ViewExamSets() {
     }
   };
 
+  const deleteExamSet = async (examSet: ExamSet) => {
+    if (!window.confirm(`Are you sure you want to delete "${examSet.name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5074/api/ExamSet/${examSet.type.toLowerCase()}/${examSet.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Remove the exam set from state
+        setExamSets(prev => prev.filter(set => !(set.id === examSet.id && set.type === examSet.type)));
+        console.log('Exam set deleted successfully');
+      } else {
+        console.error('Failed to delete exam set:', response.status);
+        alert('Failed to delete exam set. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting exam set:', error);
+      alert('Error deleting exam set. Please try again.');
+    }
+  };
+
   const getProgressColor = (current: number, target: number) => {
     const percentage = target > 0 ? (current / target) * 100 : 0;
     if (percentage >= 100) return 'text-green-600 dark:text-green-400';
@@ -89,6 +114,10 @@ export default function ViewExamSets() {
   if (loading) {
     return (
       <div className="mx-auto max-w-270">
+        <PageMeta
+          title="Loading Exam Sets | E-Learning Admin"
+          description="Loading exam sets from the E-Learning platform"
+        />
         <PageBreadcrumb pageTitle="View Exam Sets" />
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -98,8 +127,23 @@ export default function ViewExamSets() {
   }
 
   return (
-    <div className="mx-auto max-w-270">
+    <div className="mx-auto max-w-270 relative">
+      <PageMeta
+        title="View Exam Sets | E-Learning Admin"
+        description="Manage and view all exam sets in the E-Learning platform"
+      />
       <PageBreadcrumb pageTitle="View Exam Sets" />
+
+      {/* Floating Add Exam Set Button */}
+      <Link
+        to="/create-exam-set"
+        className="fixed bottom-8 right-8 z-50 inline-flex items-center justify-center w-16 h-16 bg-blue-500 text-white rounded-full shadow-2xl hover:bg-blue-600 transition-all duration-200 hover:scale-110 border-4 border-white"
+        title="Create New Exam Set"
+      >
+        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
+        </svg>
+      </Link>
 
       <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
         {/* Header with Filter */}
@@ -113,12 +157,12 @@ export default function ViewExamSets() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             {/* Type Filter */}
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="min-w-[140px] px-4 py-3 text-sm font-medium border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm hover:border-gray-400 transition-colors"
             >
               <option value="all">All Types</option>
               {examTypes.map(type => (
@@ -128,9 +172,12 @@ export default function ViewExamSets() {
 
             {/* Create New Button */}
             <Link
-              to="/exam-sets/create"
-              className="inline-flex items-center justify-center rounded-md bg-primary py-2 px-4 text-center font-medium text-white hover:bg-opacity-90"
+              to="/create-exam-set"
+              className="inline-flex items-center justify-center rounded-md bg-blue-600 py-3 px-5 text-center font-medium text-white hover:bg-blue-700 transition-colors shadow-sm"
             >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
               Create New Exam Set
             </Link>
           </div>
@@ -147,9 +194,12 @@ export default function ViewExamSets() {
               }
             </p>
             <Link
-              to="/exam-sets/create"
-              className="inline-flex items-center justify-center rounded-md bg-primary py-2 px-4 text-center font-medium text-white hover:bg-opacity-90"
+              to="/create-exam-set"
+              className="inline-flex items-center justify-center rounded-md bg-blue-600 py-3 px-6 text-center font-medium text-white hover:bg-blue-700 transition-colors"
             >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
               Create Exam Set
             </Link>
           </div>
@@ -205,15 +255,36 @@ export default function ViewExamSets() {
                   <span className="text-xs text-gray-500 dark:text-gray-400">
                     {new Date(examSet.createdAt).toLocaleDateString()}
                   </span>
-                  <Link
-                    to={`/exam-sets/${examSet.type.toLowerCase()}/${examSet.id}`}
-                    className="inline-flex items-center text-sm font-medium text-primary hover:underline"
-                  >
-                    View Questions
-                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => deleteExamSet(examSet)}
+                      className="inline-flex items-center text-xs font-medium text-red-600 hover:text-red-700 hover:underline"
+                      title="Delete Exam Set"
+                    >
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete
+                    </button>
+                    <Link
+                      to={`/exam-sets/edit/${examSet.type.toLowerCase()}/${examSet.id}`}
+                      className="inline-flex items-center text-xs font-medium text-yellow-600 hover:text-yellow-700 hover:underline"
+                    >
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit
+                    </Link>
+                    <Link
+                      to={`/exam-sets/${examSet.type.toLowerCase()}/${examSet.id}`}
+                      className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                    >
+                      View Questions
+                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}

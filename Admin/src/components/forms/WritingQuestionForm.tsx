@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useQuestionForm } from '../../hooks/useQuestionForm';
 import { useExamSets } from '../../hooks/useExamSets';
 
@@ -18,6 +18,8 @@ interface CreateWritingQuestionDto {
 
 export default function WritingQuestionForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const examSetId = searchParams.get('examSetId');
   const { examSets, loading: examSetsLoading } = useExamSets('writing');
 
   const {
@@ -27,6 +29,7 @@ export default function WritingQuestionForm() {
     handleInputChange,
     prepareSubmitData
   } = useQuestionForm<CreateWritingQuestionDto>({
+    examSetId: examSetId ? parseInt(examSetId) : undefined,
     questionText: '',
     correctAnswer: ''
   });

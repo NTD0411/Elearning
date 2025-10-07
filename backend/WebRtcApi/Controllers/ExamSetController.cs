@@ -268,6 +268,94 @@ namespace WebRtcApi.Controllers
             return CreatedAtAction(nameof(GetWritingExamSets), new { id = examSet.ExamSetId }, examSet);
         }
 
+        // PUT: api/ExamSet/Reading/{id}
+        [HttpPut("Reading/{id}")]
+        public async Task<IActionResult> UpdateReadingExamSet(int id, UpdateExamSetRequest request)
+        {
+            var examSet = await _context.ReadingExamSets.FindAsync(id);
+            if (examSet == null)
+                return NotFound();
+
+            examSet.ExamSetTitle = request.ExamSetTitle;
+            examSet.TotalQuestions = request.TotalQuestions;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return StatusCode(500, "Error updating exam set");
+            }
+        }
+
+        // PUT: api/ExamSet/Listening/{id}
+        [HttpPut("Listening/{id}")]
+        public async Task<IActionResult> UpdateListeningExamSet(int id, UpdateExamSetRequest request)
+        {
+            var examSet = await _context.ListeningExamSets.FindAsync(id);
+            if (examSet == null)
+                return NotFound();
+
+            examSet.ExamSetTitle = request.ExamSetTitle;
+            examSet.TotalQuestions = request.TotalQuestions;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return StatusCode(500, "Error updating exam set");
+            }
+        }
+
+        // PUT: api/ExamSet/Speaking/{id}
+        [HttpPut("Speaking/{id}")]
+        public async Task<IActionResult> UpdateSpeakingExamSet(int id, UpdateExamSetRequest request)
+        {
+            var examSet = await _context.SpeakingExamSets.FindAsync(id);
+            if (examSet == null)
+                return NotFound();
+
+            examSet.ExamSetTitle = request.ExamSetTitle;
+            examSet.TotalQuestions = request.TotalQuestions;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return StatusCode(500, "Error updating exam set");
+            }
+        }
+
+        // PUT: api/ExamSet/Writing/{id}
+        [HttpPut("Writing/{id}")]
+        public async Task<IActionResult> UpdateWritingExamSet(int id, UpdateExamSetRequest request)
+        {
+            var examSet = await _context.WritingExamSets.FindAsync(id);
+            if (examSet == null)
+                return NotFound();
+
+            examSet.ExamSetTitle = request.ExamSetTitle;
+            examSet.TotalQuestions = request.TotalQuestions;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return StatusCode(500, "Error updating exam set");
+            }
+        }
+
         // DELETE: api/ExamSet/reading/{id}
         [HttpDelete("reading/{id}")]
         public async Task<IActionResult> DeleteReadingExamSet(int id)
@@ -337,5 +425,11 @@ namespace WebRtcApi.Controllers
     {
         public string Title { get; set; } = string.Empty;
         public int TargetQuestions { get; set; } = 5;
+    }
+
+    public class UpdateExamSetRequest
+    {
+        public string ExamSetTitle { get; set; } = string.Empty;
+        public int TotalQuestions { get; set; } = 5;
     }
 }
