@@ -7,7 +7,7 @@ export default function CreateExamSet() {
   return (
     <>
       <PageMeta
-        title="Create Exam Set | TailAdmin - Admin Dashboard"
+        title="Create Exam Set | Elearning - Admin Dashboard"
         description="Create new exam sets for organizing questions"
       />
       <PageBreadcrumb pageTitle="Create Exam Set" />

@@ -7,7 +7,7 @@ export default function CreateSpeakingQuestion() {
   return (
     <>
       <PageMeta
-        title="Create Speaking Question | TailAdmin - Admin Dashboard"
+        title="Create Speaking Question | Elearning - Admin Dashboard"
         description="Create new speaking questions for the E-learning system"
       />
       <PageBreadcrumb pageTitle="Create Speaking Question" />

@@ -7,7 +7,7 @@ export default function CreateWritingQuestion() {
   return (
     <>
       <PageMeta
-        title="Create Writing Question | TailAdmin - Admin Dashboard"
+        title="Create Writing Question | Elearning - Admin Dashboard"
         description="Create new writing questions for the E-learning system"
       />
       <PageBreadcrumb pageTitle="Create Writing Question" />

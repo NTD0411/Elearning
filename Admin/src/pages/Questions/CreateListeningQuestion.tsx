@@ -7,7 +7,7 @@ export default function CreateListeningQuestion() {
   return (
     <>
       <PageMeta
-        title="Create Listening Question | TailAdmin - Admin Dashboard"
+        title="Create Listening Question | Elearning - Admin Dashboard"
         description="Create new listening comprehension questions for the E-learning system"
       />
       <PageBreadcrumb pageTitle="Create Listening Question" />
