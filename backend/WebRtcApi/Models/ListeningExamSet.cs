@@ -12,6 +12,7 @@ public partial class ListeningExamSet
     public string ExamSetTitle { get; set; } = null!;
 
     public int TotalQuestions { get; set; }
+    public string? ListeningImage { get; set; }
 
     public DateTime? CreatedAt { get; set; }
     public int? ExamCourseId { get; set; }

@@ -27,9 +27,7 @@ public partial class ReadingExam
 
     public string? OptionH { get; set; }
 
-    public string? ReadingContext { get; set; }
-
-    public string? ReadingImage { get; set; }
+    
 
     public string? AnswerFill { get; set; }
 

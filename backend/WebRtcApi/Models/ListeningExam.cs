@@ -30,7 +30,7 @@ public partial class ListeningExam
 
     public string? OptionH { get; set; }
 
-    public string? ListeningImage { get; set; }
+
 
     public string? AnswerFill { get; set; }
 
