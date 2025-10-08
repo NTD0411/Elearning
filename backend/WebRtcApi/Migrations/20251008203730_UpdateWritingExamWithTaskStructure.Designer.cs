@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebRtcApi.Data;
 
@@ -11,9 +12,11 @@ using WebRtcApi.Data;
 namespace WebRtcApi.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20251008203730_UpdateWritingExamWithTaskStructure")]
+    partial class UpdateWritingExamWithTaskStructure
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -599,17 +602,8 @@ namespace WebRtcApi.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("answer_text");
 
-                    b.Property<string>("Answers")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("ExamCourseId")
                         .HasColumnType("int");
-
-                    b.Property<int?>("ExamId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ExamType")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("MentorScore")
                         .HasColumnType("decimal(4, 2)")
@@ -627,12 +621,6 @@ namespace WebRtcApi.Migrations
                         .HasColumnType("datetime")
                         .HasColumnName("submitted_at")
                         .HasDefaultValueSql("(getdate())");
-
-                    b.Property<int?>("TimeSpent")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TotalWordCount")
-                        .HasColumnType("int");
 
                     b.Property<int?>("UserId")
                         .HasColumnType("int")

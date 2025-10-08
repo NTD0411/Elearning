@@ -17,6 +17,9 @@ const authOptions: NextAuthOptions = {
 
         try {
           // Call backend API for login
+          console.log('Attempting login with:', credentials.email);
+          console.log('API URL:', `${process.env.NEXT_PUBLIC_API_URL}/auth/login`);
+          
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
             method: 'POST',
             headers: {
