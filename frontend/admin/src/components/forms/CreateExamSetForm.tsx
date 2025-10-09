@@ -8,6 +8,11 @@ interface CreateExamSetDto {
   readingContext?: string;
   readingImage?: string;
   listeningImage?: string;
+  // Writing-specific fields
+  examType?: string;
+  description?: string;
+  totalTimeMinutes?: number;
+  instructions?: string;
 }
 
 type ExamType = 'reading' | 'listening' | 'speaking' | 'writing';
@@ -26,10 +31,15 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
   const [formData, setFormData] = useState<CreateExamSetDto>({
     examSetTitle: '',
     examSetCode: '',
-    targetQuestions: 5,
+    targetQuestions: 2, // Writing always has 2 tasks
     readingContext: '',
     readingImage: '',
-    listeningImage: ''
+    listeningImage: '',
+    // Writing defaults
+    examType: 'Academic',
+    description: '',
+    totalTimeMinutes: 60,
+    instructions: ''
   });
 
   const getTypeInfo = (type: ExamType) => {
@@ -57,10 +67,10 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
       },
       writing: {
         title: 'Writing Exam Set',
-        description: 'Create a new exam set container for writing questions',
+        description: 'Create a new exam set container for IELTS writing tasks (Task 1 + Task 2)',
         color: 'orange',
         prefix: 'WS',
-        defaultTime: 45
+        defaultTime: 60
       }
     };
     return info[type];
@@ -345,30 +355,143 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
           </div>
         )}
 
+        {/* Writing-specific fields - Only show for writing exam type */}
+        {selectedType === 'writing' && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Exam Type *
+              </label>
+              <select
+                name="examType"
+                value={formData.examType || 'Academic'}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                <option value="Academic">Academic IELTS</option>
+                <option value="General Training">General Training IELTS</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Academic: Task 1 describes charts/graphs, Task 2 essays. General: Task 1 letters, Task 2 essays.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={formData.description || ''}
+                onChange={handleInputChange}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                placeholder="Brief description of this writing exam set (e.g., 'Practice set focusing on opinion essays and formal letters')"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Total Time (minutes) *
+              </label>
+              <input
+                type="number"
+                name="totalTimeMinutes"
+                value={formData.totalTimeMinutes || 60}
+                onChange={handleInputChange}
+                required
+                min="30"
+                max="120"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Standard IELTS writing time is 60 minutes (20 min for Task 1, 40 min for Task 2).
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                General Instructions
+              </label>
+              <textarea
+                name="instructions"
+                value={formData.instructions || ''}
+                onChange={handleInputChange}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                placeholder="General instructions for students (e.g., 'Complete both tasks. Task 2 carries more weight in scoring. Write in ink, not pencil.')"
+              />
+            </div>
+
+            {/* Writing Guidelines */}
+            <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+              <h4 className="font-medium text-orange-800 dark:text-orange-200 mb-2">
+                📝 IELTS Writing Format Guidelines:
+              </h4>
+              <div className="text-sm text-orange-700 dark:text-orange-300 space-y-2">
+                <div>
+                  <strong>Academic Task 1 (20 minutes, 150+ words):</strong>
+                  <ul className="list-disc list-inside ml-2 mt-1">
+                    <li>Describe visual information (charts, graphs, diagrams, maps)</li>
+                    <li>Summarize and report main features</li>
+                    <li>Make comparisons where relevant</li>
+                  </ul>
+                </div>
+                <div>
+                  <strong>General Task 1 (20 minutes, 150+ words):</strong>
+                  <ul className="list-disc list-inside ml-2 mt-1">
+                    <li>Write a letter (formal, semi-formal, or informal)</li>
+                    <li>Explain a situation, request information, or express needs</li>
+                  </ul>
+                </div>
+                <div>
+                  <strong>Task 2 (40 minutes, 250+ words):</strong>
+                  <ul className="list-disc list-inside ml-2 mt-1">
+                    <li>Write an essay responding to an argument, problem, or point of view</li>
+                    <li>Present and justify opinions with relevant examples</li>
+                    <li>Worth 2/3 of the total writing score</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Difficulty and Time Limit */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Target Number of Questions
             </label>
-            <select
-              name="targetQuestions"
-              value={formData.targetQuestions}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            >
-              <option value={3}>3 questions</option>
-              <option value={4}>4 questions</option>
-              <option value={5}>5 questions</option>
-              <option value={6}>6 questions</option>
-              <option value={7}>7 questions</option>
-              <option value={8}>8 questions</option>
-              <option value={10}>10 questions</option>
-              <option value={15}>15 questions</option>
-              <option value={20}>20 questions</option>
-            </select>
+            {selectedType === 'writing' ? (
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                <span className="text-gray-700 dark:text-gray-300">2 tasks (Task 1 + Task 2)</span>
+                <input type="hidden" name="targetQuestions" value={2} />
+              </div>
+            ) : (
+              <select
+                name="targetQuestions"
+                value={formData.targetQuestions}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                <option value={3}>3 questions</option>
+                <option value={4}>4 questions</option>
+                <option value={5}>5 questions</option>
+                <option value={6}>6 questions</option>
+                <option value={7}>7 questions</option>
+                <option value={8}>8 questions</option>
+                <option value={10}>10 questions</option>
+                <option value={15}>15 questions</option>
+                <option value={20}>20 questions</option>
+              </select>
+            )}
             <p className="text-xs text-gray-500 mt-1">
-              This is your target. You can add questions individually after creating the exam set.
+              {selectedType === 'writing' 
+                ? 'Writing exams always contain 2 tasks: Task 1 and Task 2'
+                : 'This is your target. You can add questions individually after creating the exam set.'
+              }
             </p>
           </div>
         </div>
@@ -379,10 +502,22 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
             💡 Tips for Creating {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Exam Sets:
           </h4>
           <ul className={`text-sm text-${currentTypeInfo.color}-700 dark:text-${currentTypeInfo.color}-300 space-y-1`}>
-            <li>• Use descriptive titles (e.g., "IELTS Academic {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)}", "TOEFL {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Set A")</li>
-            <li>• Beginner: 5-10 questions, Intermediate: 10-15 questions, Advanced: 15-20 questions</li>
-            <li>• Recommended time limit: {currentTypeInfo.defaultTime} minutes for {selectedType}</li>
-            <li>• After creating the exam set, you can add individual questions to it</li>
+            {selectedType === 'writing' ? (
+              <>
+                <li>• Use descriptive titles (e.g., "IELTS Academic Writing Practice", "General Training Set A")</li>
+                <li>• Each writing exam set contains exactly 2 tasks (Task 1 + Task 2)</li>
+                <li>• Standard time: 60 minutes total (20 min Task 1, 40 min Task 2)</li>
+                <li>• Academic focuses on charts/graphs + essays; General focuses on letters + essays</li>
+                <li>• After creating the exam set, add individual writing tasks to it</li>
+              </>
+            ) : (
+              <>
+                <li>• Use descriptive titles (e.g., "IELTS Academic {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)}", "TOEFL {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Set A")</li>
+                <li>• Beginner: 5-10 questions, Intermediate: 10-15 questions, Advanced: 15-20 questions</li>
+                <li>• Recommended time limit: {currentTypeInfo.defaultTime} minutes for {selectedType}</li>
+                <li>• After creating the exam set, you can add individual questions to it</li>
+              </>
+            )}
           </ul>
         </div>
 

@@ -13,6 +13,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000", "http://localhost:5173")
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials();
+    });
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -50,14 +62,7 @@ builder.Services.AddScoped<IWritingExamRepository, WritingExamRepository>();
 builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddMemoryCache();
 
-// CORS for frontend dev server
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("FrontendCors", policy =>
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
-              .AllowAnyHeader()
-              .AllowAnyMethod());
-});
+// Register services here...
 
 var app = builder.Build();
 
@@ -69,10 +74,12 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
+app.UseRouting();
+
+app.UseCors("CorsPolicy");
+
 // Comment out HTTPS redirection for development
 // app.UseHttpsRedirection();
-
-app.UseCors("FrontendCors");
 
 // Enable static files serving with proper content types
 app.UseStaticFiles(new StaticFileOptions
