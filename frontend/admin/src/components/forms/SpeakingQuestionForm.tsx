@@ -38,7 +38,7 @@ export default function SpeakingQuestionForm() {
     
     try {
       const submitData = prepareSubmitData(formData);
-      const response = await fetch('http://localhost:5074/api/SpeakingExam', {
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/SpeakingExam`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -18,7 +18,7 @@ export function useExamSets(examType: string) {
   const fetchExamSets = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5074/api/ExamSet/${examType}`);
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamSet/${examType}`);
       
       if (response.ok) {
         const data = await response.json();

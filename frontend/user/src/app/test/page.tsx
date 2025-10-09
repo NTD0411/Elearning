@@ -10,7 +10,7 @@ export default function TestPage() {
     setLoading(true)
     try {
       // Test với health check endpoint
-      const response = await fetch("http://localhost:5074/api/auth/health", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://e-learningsite.runasp.net/api'}/auth/health`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -35,7 +35,7 @@ export default function TestPage() {
     try {
       // Generate random email to avoid duplicate
       const randomId = Math.floor(Math.random() * 1000);
-      const response = await fetch("http://localhost:5074/api/auth/register", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://e-learningsite.runasp.net/api'}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -65,7 +65,7 @@ export default function TestPage() {
   const testLogin = async () => {
     setLoading(true)
     try {
-      const response = await fetch("http://localhost:5074/api/auth/login", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://e-learningsite.runasp.net/api'}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -129,7 +129,7 @@ export default function TestPage() {
         )}
 
         <div className="mt-6 text-sm text-gray-600">
-          <p><strong>Backend URL:</strong> http://localhost:5074/api</p>
+          <p><strong>Backend URL:</strong> {process.env.NEXT_PUBLIC_API_URL || 'https://e-learningsite.runasp.net/api'}</p>
           <p><strong>Status:</strong> Backend is running on HTTP (no SSL required)</p>
           <h3 className="font-semibold mt-4 mb-2">Test Flow:</h3>
           <ol className="list-decimal list-inside space-y-1">

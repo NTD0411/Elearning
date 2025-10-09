@@ -54,7 +54,7 @@ export default function ExamHistoryPage() {
 
       try {
         console.log('Fetching history for user ID:', session.user.id);
-        const response = await fetch(`http://localhost:5074/api/Submission/user/${session.user.id}/history`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://e-learningsite.runasp.net/api'}/Submission/user/${session.user.id}/history`);
         
         if (!response.ok) {
           const errorText = await response.text();

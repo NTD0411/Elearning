@@ -60,16 +60,16 @@ export default function ExamCourseDetail() {
     
     // If path starts with /, prepend base URL
     if (path.startsWith('/')) {
-      return `http://localhost:5074${path}`;
+      return `${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net'}/api${path}`;
     }
     
     // If path doesn't start with /, assume it needs /uploads/ prefix
     // Check if it already contains 'uploads'
     if (path.includes('uploads/')) {
-      return `http://localhost:5074/${path}`;
+      return `${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net'}/api/${path}`;
     }
     
-    return `http://localhost:5074/uploads/${path}`;
+    return `${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net'}/api/uploads/${path}`;
   };
 
   useEffect(() => {
@@ -78,7 +78,7 @@ export default function ExamCourseDetail() {
 
   const fetchExamCourse = async () => {
     try {
-      const response = await fetch(`http://localhost:5074/api/ExamCourse/${id}`);
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamCourse/${id}`);
       if (response.ok) {
         const data = await response.json();
         setExamCourse(data);
@@ -127,16 +127,16 @@ export default function ExamCourseDetail() {
       let endpoint = '';
       switch (examType.toLowerCase()) {
         case 'reading':
-          endpoint = `http://localhost:5074/api/ReadingExam/examset/${examSet.examSetId}`;
+          endpoint = `${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ReadingExam/examset/${examSet.examSetId}`;
           break;
         case 'listening':
-          endpoint = `http://localhost:5074/api/ListeningExam/examset/${examSet.examSetId}`;
+          endpoint = `${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ListeningExam/examset/${examSet.examSetId}`;
           break;
         case 'speaking':
-          endpoint = `http://localhost:5074/api/SpeakingExam/examset/${examSet.examSetId}`;
+          endpoint = `${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/SpeakingExam/examset/${examSet.examSetId}`;
           break;
         case 'writing':
-          endpoint = `http://localhost:5074/api/WritingExam/examset/${examSet.examSetId}`;
+          endpoint = `${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/WritingExam/examset/${examSet.examSetId}`;
           break;
         default:
           return [];

@@ -33,7 +33,7 @@ export default function ViewExamSets() {
       // Fetch from all 4 exam set types
       for (const type of examTypes) {
         try {
-          const response = await fetch(`http://localhost:5074/api/ExamSet/${type}`);
+          const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamSet/${type}`);
           if (response.ok) {
             const data = await response.json();
             console.log(`${type} exam sets:`, data); // Debug log
@@ -86,7 +86,7 @@ export default function ViewExamSets() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5074/api/ExamSet/${examSet.type.toLowerCase()}/${examSet.id}`, {
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamSet/${examSet.type.toLowerCase()}/${examSet.id}`, {
         method: 'DELETE',
       });
 

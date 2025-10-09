@@ -1,5 +1,5 @@
 // API configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5074/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://e-learningsite.runasp.net/api'
 
 export interface LoginRequest {
   FullName: string

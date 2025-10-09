@@ -49,7 +49,7 @@ const OTPVerification = ({ email, userId, onSwitchToSignIn, onBackToSignUp }: OT
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5074/api'}/auth/confirm-register?userId=${userId}&otpCode=${otpCode}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://e-learningsite.runasp.net/api'}/auth/confirm-register?userId=${userId}&otpCode=${otpCode}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

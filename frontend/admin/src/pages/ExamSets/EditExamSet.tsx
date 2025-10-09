@@ -34,7 +34,7 @@ export default function EditExamSet() {
     try {
       setLoading(true);
       const capitalizedType = type!.charAt(0).toUpperCase() + type!.slice(1);
-      const response = await fetch(`http://localhost:5074/api/ExamSet/${capitalizedType}/${id}`);
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamSet/${capitalizedType}/${id}`);
       if (response.ok) {
         const data = await response.json();
         setExamSet(data);
@@ -68,7 +68,7 @@ export default function EditExamSet() {
 
     try {
       const capitalizedType = type!.charAt(0).toUpperCase() + type!.slice(1);
-      const response = await fetch(`http://localhost:5074/api/ExamSet/${capitalizedType}/${id}`, {
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamSet/${capitalizedType}/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

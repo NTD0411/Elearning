@@ -49,7 +49,7 @@ const Courses = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await fetch("http://localhost:5074/api/ExamCourse");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamCourse`);
         if (!response.ok) {
           throw new Error("Failed to fetch courses");
         }

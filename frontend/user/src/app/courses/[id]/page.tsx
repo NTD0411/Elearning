@@ -22,7 +22,7 @@ export default function CourseDetailPage() {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const response = await fetch(`http://localhost:5074/api/ExamCourse/${params.id}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamCourse/${params.id}`);
         
         if (!response.ok) {
           throw new Error('Course not found');

@@ -45,7 +45,7 @@ export default function ExamSetDetail() {
   const fetchExamSetDetail = async () => {
     try {
       const capitalizedType = type!.charAt(0).toUpperCase() + type!.slice(1);
-      const response = await fetch(`http://localhost:5074/api/ExamSet/${capitalizedType}/${id}`);
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamSet/${capitalizedType}/${id}`);
       if (response.ok) {
         const data = await response.json();
         console.log('Exam set detail:', data); // Debug log
@@ -80,7 +80,7 @@ export default function ExamSetDetail() {
           throw new Error('Invalid exam type');
       }
 
-      const response = await fetch(`http://localhost:5074/api/${endpoint}`);
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/${endpoint}`);
       if (response.ok) {
         const data = await response.json();
         // Filter questions by exam set ID
@@ -121,7 +121,7 @@ export default function ExamSetDetail() {
           throw new Error('Invalid exam type');
       }
 
-      const response = await fetch(`http://localhost:5074/api/${endpoint}/${question.id}`, {
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/${endpoint}/${question.id}`, {
         method: 'DELETE',
       });
 

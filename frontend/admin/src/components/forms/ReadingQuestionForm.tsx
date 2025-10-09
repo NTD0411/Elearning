@@ -49,7 +49,7 @@ export default function ReadingQuestionForm() {
     
     try {
       const submitData = prepareSubmitData(formData);
-      const response = await fetch('http://localhost:5074/api/ReadingExam', {
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ReadingExam`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

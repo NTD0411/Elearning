@@ -38,7 +38,7 @@ const VerifyOTP = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5074/api'}/auth/confirm-register?userId=${userId}&otpCode=${otp}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://e-learningsite.runasp.net/api'}/auth/confirm-register?userId=${userId}&otpCode=${otp}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

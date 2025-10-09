@@ -108,7 +108,7 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
       const formData = new FormData();
       formData.append('file', imageFile);
       
-      const response = await fetch('http://localhost:5074/api/Upload/image', {
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/Upload/image`, {
         method: 'POST',
         body: formData,
       });
@@ -151,7 +151,7 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
         })
       };
       
-      const response = await fetch(`http://localhost:5074/api/ExamSet/${selectedType}`, {
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamSet/${selectedType}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import PageMeta from '../../components/common/PageMeta';
 import { ExamCourseDto, DeleteResultDto } from '../../types/examCourse';
@@ -15,7 +15,7 @@ export default function ViewExamCourses() {
 
   const fetchExamCourses = async () => {
     try {
-      const response = await fetch('http://localhost:5074/api/ExamCourse');
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamCourse`);
       if (response.ok) {
         const data = await response.json();
         setExamCourses(data);
@@ -30,14 +30,14 @@ export default function ViewExamCourses() {
   };
 
   // Group courses by exam type
-  const groupedCourses = examCourses.reduce((acc, course) => {
+  const groupedCourses = examCourses.reduce<Record<string, ExamCourseDto[]>>((acc, course) => {
     const type = course.examType.toLowerCase();
     if (!acc[type]) {
       acc[type] = [];
     }
     acc[type].push(course);
     return acc;
-  }, {} as Record<string, ExamCourseDto[]>);
+  }, {});
 
   // Filter courses based on selected type
   const filteredCourses = selectedType === 'all' 
@@ -73,7 +73,7 @@ export default function ViewExamCourses() {
         reason: reason.trim() || undefined
       };
 
-      const response = await fetch(`http://localhost:5074/api/ExamCourse/${id}`, {
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamCourse/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

@@ -1,5 +1,5 @@
 // API configuration and services for Admin panel
-const API_BASE_URL = 'http://localhost:5074/api';
+const API_BASE_URL = process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api';
 
 export const apiConfig = {
   baseURL: API_BASE_URL,

@@ -58,7 +58,7 @@ export default function WritingExamPage() {
       }
 
       try {
-        const response = await fetch(`http://localhost:5074/api/WritingExam/course/${courseId}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://e-learningsite.runasp.net/api'}/WritingExam/course/${courseId}`);
         
         if (!response.ok) {
           throw new Error('Writing exam not found for this course');
@@ -129,7 +129,7 @@ export default function WritingExamPage() {
         submittedAt: new Date().toISOString()
       };
 
-      const response = await fetch('http://localhost:5074/api/Submission', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://e-learningsite.runasp.net/api'}/Submission`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -32,7 +32,7 @@ const CreateExamSetForm: React.FC<CreateExamSetFormProps> = ({ onSuccess }) => {
     setIsLoading(true);
     
     try {
-      const response = await fetch(`http://localhost:5074/api/ExamSet/${selectedType}`, {
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamSet/${selectedType}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

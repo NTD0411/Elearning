@@ -55,7 +55,7 @@ export default function CreateExamCourseForm() {
   const fetchAvailableExamSets = async (examType: ExamType) => {
     setLoadingExamSets(true);
     try {
-      const response = await fetch(`http://localhost:5074/api/ExamCourse/available-examsets/${examType}`);
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamCourse/available-examsets/${examType}`);
       if (response.ok) {
         const data = await response.json();
         setAvailableExamSets(data);
@@ -112,7 +112,7 @@ export default function CreateExamCourseForm() {
     setLoading(true);
     
     try {
-      const response = await fetch('http://localhost:5074/api/ExamCourse', {
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ExamCourse`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

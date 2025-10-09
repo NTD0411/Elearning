@@ -50,7 +50,7 @@ export default function ListeningQuestionForm() {
         const formDataForUpload = new FormData();
         formDataForUpload.append('file', audioFile);
         
-        const uploadResponse = await fetch('http://localhost:5074/api/upload/audio', {
+        const uploadResponse = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/upload/audio`, {
           method: 'POST',
           body: formDataForUpload,
         });
@@ -87,7 +87,7 @@ export default function ListeningQuestionForm() {
         submitData.answerFill = '';
       }
 
-      const response = await fetch('http://localhost:5074/api/ListeningExam', {
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/ListeningExam`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -83,7 +83,7 @@ export default function WritingQuestionForm() {
         correctAnswer: 'N/A' // Writing tasks don't have single correct answers
       });
       
-      const response = await fetch('http://localhost:5074/api/WritingExam', {
+      const response = await fetch(`${process.env.VITE_API_URL || 'https://e-learningsite.runasp.net/api'}/WritingExam`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
