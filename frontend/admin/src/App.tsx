@@ -22,6 +22,9 @@ import CreateExamSet from "./pages/ExamSets/CreateExamSet";
 import ViewExamSets from "./pages/ExamSets/ViewExamSets";
 import ExamSetDetail from "./pages/ExamSets/ExamSetDetail";
 import EditExamSet from "./pages/ExamSets/EditExamSet";
+import CreateExamCourse from "./pages/ExamCourses/CreateExamCourse";
+import ViewExamCourses from "./pages/ExamCourses/ViewExamCourses";
+import ExamCourseDetail from "./pages/ExamCourses/ExamCourseDetail";
 import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
@@ -55,6 +58,9 @@ export default function App() {
             <Route path="exam-sets/view" element={<ViewExamSets />} />
             <Route path="exam-sets/:type/:id" element={<ExamSetDetail />} />
             <Route path="exam-sets/edit/:type/:id" element={<EditExamSet />} />
+            <Route path="exam-courses/create" element={<CreateExamCourse />} />
+            <Route path="exam-courses/view" element={<ViewExamCourses />} />
+            <Route path="exam-courses/:id" element={<ExamCourseDetail />} />
             <Route path="students" element={<StudentsManagement />} />
             <Route path="mentors" element={<MentorsManagement />} />
             <Route path="alerts" element={<Alerts />} />

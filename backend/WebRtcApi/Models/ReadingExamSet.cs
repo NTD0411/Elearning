@@ -17,7 +17,9 @@ public partial class ReadingExamSet
     public string? ReadingImage { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+    public int? ExamCourseId { get; set; }
 
+    public virtual ExamCourse? ExamCourse { get; set; }
     public virtual ICollection<ReadingExam> ReadingExams { get; set; } = new List<ReadingExam>();
 
 

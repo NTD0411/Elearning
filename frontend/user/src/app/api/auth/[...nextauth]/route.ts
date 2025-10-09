@@ -1,7 +1,8 @@
-import NextAuth from 'next-auth'
+import NextAuth, { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import { JWT } from 'next-auth/jwt'
 
-const handler = NextAuth({
+const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -16,6 +17,9 @@ const handler = NextAuth({
 
         try {
           // Call backend API for login
+          console.log('Attempting login with:', credentials.email);
+          console.log('API URL:', `${process.env.NEXT_PUBLIC_API_URL}/auth/login`);
+          
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
             method: 'POST',
             headers: {
@@ -34,7 +38,12 @@ const handler = NextAuth({
 
           const data = await response.json()
           
-          // Return user object with tokens và thông tin user
+          // Decode JWT để lấy role từ claims
+          const token = data.accessToken;
+          const tokenParts = token.split('.');
+          const payload = JSON.parse(atob(tokenParts[1]));
+          const role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+
           return {
             id: data.user?.id?.toString() || '1',
             email: data.user?.email || credentials.email,
@@ -45,6 +54,7 @@ const handler = NextAuth({
             gender: data.user?.gender || '',
             address: data.user?.address || '',
             dateOfBirth: data.user?.dateOfBirth || '',
+            role: role || 'student', // Lấy role từ JWT claims
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
           }
@@ -59,33 +69,40 @@ const handler = NextAuth({
     strategy: 'jwt',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: JWT; user: any }) {
       if (user) {
-        token.accessToken = (user as any).accessToken
-        token.refreshToken = (user as any).refreshToken
-        token.userId = user.id
-        token.fullName = (user as any).fullName
-        token.portraitUrl = (user as any).portraitUrl
-        token.experience = (user as any).experience
-        token.gender = (user as any).gender
-        token.address = (user as any).address
-        token.dateOfBirth = (user as any).dateOfBirth
+        token.id = user.id;
+        token.role = user.role;
+        token.email = user.email;
+        token.name = user.name;
+        token.fullName = user.fullName;
+        token.portraitUrl = user.portraitUrl;
+        token.experience = user.experience;
+        token.gender = user.gender;
+        token.address = user.address;
+        token.dateOfBirth = user.dateOfBirth;
+        token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
       }
-      return token
+      return token;
     },
-    async session({ session, token }) {
-      if (session) {
-        (session as any).accessToken = token.accessToken;
-        (session as any).refreshToken = token.refreshToken;
-        (session as any).userId = token.userId;
-        (session.user as any).fullName = token.fullName;
-        (session.user as any).portraitUrl = token.portraitUrl;
-        (session.user as any).experience = token.experience;
-        (session.user as any).gender = token.gender;
-        (session.user as any).address = token.address;
-        (session.user as any).dateOfBirth = token.dateOfBirth;
+    async session({ session, token }: { session: any; token: JWT }) {
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.email = token.email;
+        session.user.name = token.name;
+        session.user.fullName = token.fullName;
+        session.user.portraitUrl = token.portraitUrl;
+        session.user.experience = token.experience;
+        session.user.gender = token.gender;
+        session.user.address = token.address;
+        session.user.dateOfBirth = token.dateOfBirth;
       }
-      return session
+      session.accessToken = token.accessToken;
+      session.refreshToken = token.refreshToken;
+      
+      return session;
     },
   },
   pages: {
@@ -93,6 +110,7 @@ const handler = NextAuth({
     error: '/signin',
   },
   secret: process.env.NEXTAUTH_SECRET,
-})
+}
 
+const handler = NextAuth(authOptions)
 export { handler as GET, handler as POST }

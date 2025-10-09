@@ -67,5 +67,58 @@ namespace WebRtcApi.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpPost("image")]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest("No file uploaded");
+                }
+
+                // Validate file type
+                var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" };
+                if (!allowedTypes.Contains(file.ContentType.ToLower()))
+                {
+                    return BadRequest("Invalid file type. Only image files are allowed.");
+                }
+
+                // Validate file size (max 10MB)
+                if (file.Length > 10 * 1024 * 1024)
+                {
+                    return BadRequest("File size exceeds 10MB limit");
+                }
+
+                // Create uploads directory if it doesn't exist
+                var uploadsDir = Path.Combine(_environment.WebRootPath, "uploads", "images");
+                if (!Directory.Exists(uploadsDir))
+                {
+                    Directory.CreateDirectory(uploadsDir);
+                }
+
+                // Generate unique filename
+                var fileExtension = Path.GetExtension(file.FileName);
+                var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                var filePath = Path.Combine(uploadsDir, fileName);
+
+                // Save file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Return the URL to access the file
+                var fileUrl = $"{Request.Scheme}://{Request.Host}/uploads/images/{fileName}";
+
+                return Ok(new { url = fileUrl });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading image file");
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }

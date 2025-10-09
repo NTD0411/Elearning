@@ -46,6 +46,7 @@ namespace WebRtcApi.Data
 
         public virtual DbSet<WritingExamSet> WritingExamSets { get; set; }
         public virtual DbSet<ExamCourse> ExamCourse { get; set; }
+        public virtual DbSet<ExamCourseExamSet> ExamCourseExamSets { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

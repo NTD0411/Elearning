@@ -48,6 +48,7 @@ namespace WebRtcApi.Repositories.Auths
                     Id = user.UserId,
                     Email = user.Email,
                     FullName = user.FullName,
+                    Role = user.Role,
                     PortraitUrl = user.PortraitUrl,
                     Experience = user.Experience,
                     Gender = user.Gender,

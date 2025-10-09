@@ -1,10 +1,9 @@
 import { HeaderItem } from "@/types/menu";
 
-export const headerData: HeaderItem[] = [
+export const getHeaderData = (role?: string): HeaderItem[] => [
   { label: "Home", href: "/" },
-  { label: "Courses", href: "/#courses" },
+  { label: "Courses", href: "/courses" },
+  { label: role === "mentor" ? "Grade" : "History", href: role === "mentor" ? "/grade" : "/history" },
   { label: "Mentor", href: "/#mentor" },
-  { label: "Group", href: "/#portfolio" },
-  { label: "Testimonial", href: "/#testimonial" },
-  { label: "Docs", href: "/documentation" },
+  { label: "Tips", href: "/tips" },
 ];

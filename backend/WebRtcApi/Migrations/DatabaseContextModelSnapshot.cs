@@ -54,6 +54,34 @@ namespace WebRtcApi.Migrations
                     b.ToTable("ExamCourse");
                 });
 
+            modelBuilder.Entity("WebRtcApi.Models.ExamCourseExamSet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExamCourseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExamSetId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ExamSetType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExamCourseId");
+
+                    b.ToTable("ExamCourseExamSets");
+                });
+
             modelBuilder.Entity("WebRtcApi.Models.Feedback", b =>
                 {
                     b.Property<int>("FeedbackId")
@@ -571,8 +599,17 @@ namespace WebRtcApi.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("answer_text");
 
+                    b.Property<string>("Answers")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ExamCourseId")
                         .HasColumnType("int");
+
+                    b.Property<int?>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ExamType")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("MentorScore")
                         .HasColumnType("decimal(4, 2)")
@@ -590,6 +627,12 @@ namespace WebRtcApi.Migrations
                         .HasColumnType("datetime")
                         .HasColumnName("submitted_at")
                         .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int?>("TimeSpent")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TotalWordCount")
+                        .HasColumnType("int");
 
                     b.Property<int?>("UserId")
                         .HasColumnType("int")
@@ -794,10 +837,52 @@ namespace WebRtcApi.Migrations
                         .HasColumnType("int")
                         .HasColumnName("exam_set_id");
 
+                    b.Property<string>("Instructions")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("QuestionText")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("question_text");
+
+                    b.Property<string>("Task1Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Task1ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Task1MaxTime")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Task1MinWords")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Task1Requirements")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Task1Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Task2Context")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Task2MaxTime")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Task2MinWords")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Task2Question")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Task2Requirements")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Task2Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TotalTimeMinutes")
+                        .HasColumnType("int");
 
                     b.HasKey("WritingExamId")
                         .HasName("PK__WritingE__AD39DDEE5F9515DB");
@@ -822,6 +907,9 @@ namespace WebRtcApi.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(getdate())");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("ExamCourseId")
                         .HasColumnType("int");
 
@@ -837,9 +925,18 @@ namespace WebRtcApi.Migrations
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("exam_set_title");
 
+                    b.Property<string>("ExamType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Instructions")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("TotalQuestions")
                         .HasColumnType("int")
                         .HasColumnName("total_questions");
+
+                    b.Property<int>("TotalTimeMinutes")
+                        .HasColumnType("int");
 
                     b.HasKey("ExamSetId")
                         .HasName("PK__WritingE__A17B929E054A746A");
@@ -847,6 +944,17 @@ namespace WebRtcApi.Migrations
                     b.HasIndex("ExamCourseId");
 
                     b.ToTable("WritingExamSets");
+                });
+
+            modelBuilder.Entity("WebRtcApi.Models.ExamCourseExamSet", b =>
+                {
+                    b.HasOne("WebRtcApi.Models.ExamCourse", "ExamCourse")
+                        .WithMany("ExamCourseExamSets")
+                        .HasForeignKey("ExamCourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ExamCourse");
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.Feedback", b =>
@@ -896,7 +1004,7 @@ namespace WebRtcApi.Migrations
             modelBuilder.Entity("WebRtcApi.Models.ListeningExamSet", b =>
                 {
                     b.HasOne("WebRtcApi.Models.ExamCourse", "ExamCourse")
-                        .WithMany("ListeningExamSets")
+                        .WithMany()
                         .HasForeignKey("ExamCourseId");
 
                     b.Navigation("ExamCourse");
@@ -941,9 +1049,11 @@ namespace WebRtcApi.Migrations
 
             modelBuilder.Entity("WebRtcApi.Models.ReadingExamSet", b =>
                 {
-                    b.HasOne("WebRtcApi.Models.ExamCourse", null)
-                        .WithMany("ReadingExamSets")
+                    b.HasOne("WebRtcApi.Models.ExamCourse", "ExamCourse")
+                        .WithMany()
                         .HasForeignKey("ExamCourseId");
+
+                    b.Navigation("ExamCourse");
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.SpeakingExam", b =>
@@ -959,7 +1069,7 @@ namespace WebRtcApi.Migrations
             modelBuilder.Entity("WebRtcApi.Models.SpeakingExamSet", b =>
                 {
                     b.HasOne("WebRtcApi.Models.ExamCourse", "ExamCourse")
-                        .WithMany("SpeakingExamSets")
+                        .WithMany()
                         .HasForeignKey("ExamCourseId");
 
                     b.Navigation("ExamCourse");
@@ -1023,7 +1133,7 @@ namespace WebRtcApi.Migrations
             modelBuilder.Entity("WebRtcApi.Models.WritingExamSet", b =>
                 {
                     b.HasOne("WebRtcApi.Models.ExamCourse", "ExamCourse")
-                        .WithMany("WritingExamSets")
+                        .WithMany()
                         .HasForeignKey("ExamCourseId");
 
                     b.Navigation("ExamCourse");
@@ -1031,15 +1141,9 @@ namespace WebRtcApi.Migrations
 
             modelBuilder.Entity("WebRtcApi.Models.ExamCourse", b =>
                 {
-                    b.Navigation("ListeningExamSets");
-
-                    b.Navigation("ReadingExamSets");
-
-                    b.Navigation("SpeakingExamSets");
+                    b.Navigation("ExamCourseExamSets");
 
                     b.Navigation("Submissions");
-
-                    b.Navigation("WritingExamSets");
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.Feedback", b =>

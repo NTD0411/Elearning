@@ -11,6 +11,12 @@ public partial class Submission
 
     public int ExamCourseId {  get; set; }
 
+    public string? ExamType { get; set; } // "Reading", "Writing", "Listening", "Speaking"
+
+    public int? ExamId { get; set; } // ID của exam cụ thể (WritingExamId, ReadingExamId, etc.)
+
+    public string? Answers { get; set; } // JSON string chứa tất cả câu trả lời
+
     public string? AnswerText { get; set; }
 
     public string? AnswerChoice { get; set; }
@@ -18,6 +24,10 @@ public partial class Submission
     public string? AnswerFill { get; set; }
 
     public string? AnswerAudioUrl { get; set; }
+
+    public int? TotalWordCount { get; set; } // Tổng số từ (cho Writing)
+
+    public int? TimeSpent { get; set; } // Thời gian làm bài (giây)
 
     public DateTime? SubmittedAt { get; set; }
 
