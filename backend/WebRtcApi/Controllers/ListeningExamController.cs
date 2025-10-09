@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WebRtcApi.Repositories.Exams;
 using WebRtcApi.Dtos.Exams;
+using WebRtcApi.Data;
 
 namespace WebRtcApi.Controllers
 {
@@ -9,10 +10,12 @@ namespace WebRtcApi.Controllers
     public class ListeningExamController : ControllerBase
     {
         private readonly IListeningExamRepository _repository;
+        private readonly DatabaseContext _context;
 
-        public ListeningExamController(IListeningExamRepository repository)
+        public ListeningExamController(IListeningExamRepository repository, DatabaseContext context)
         {
             _repository = repository;
+            _context = context;
         }
 
         [HttpGet]
@@ -63,25 +66,37 @@ namespace WebRtcApi.Controllers
         }
 
         [HttpGet("examset/{examSetId}")]
-        public async Task<ActionResult<IEnumerable<ListeningExamDto>>> GetByExamSetId(int examSetId)
+        public async Task<ActionResult<IEnumerable<object>>> GetByExamSetId(int examSetId)
         {
             var listeningExams = await _repository.GetByExamSetIdAsync(examSetId);
-            var listeningExamDtos = listeningExams.Select(l => new ListeningExamDto
+            
+            // Get the exam set to include image information
+            var examSet = await _context.ListeningExamSets.FindAsync(examSetId);
+            
+            var result = listeningExams.Select(l => new
             {
-                ListeningExamId = l.ListeningExamId,
-                ExamSetId = l.ExamSetId,
-                AudioUrl = l.AudioUrl,
-                QuestionText = l.QuestionText,
-                OptionA = l.OptionA,
-                OptionB = l.OptionB,
-                OptionC = l.OptionC,
-                OptionD = l.OptionD,
-                AnswerFill = l.AnswerFill,
-                CorrectAnswer = l.CorrectAnswer,
-                CreatedAt = l.CreatedAt
-            });
+                questionId = l.ListeningExamId,
+                questionText = l.QuestionText,
+                questionOrder = l.ListeningExamId, // Using ID as order for now
+                audioUrl = l.AudioUrl,
+                // Include exam set image information
+                listeningImage = examSet?.ListeningImage,
+                options = new[]
+                {
+                    l.OptionA,
+                    l.OptionB, 
+                    l.OptionC,
+                    l.OptionD,
+                    l.OptionE,
+                    l.OptionF,
+                    l.OptionG,
+                    l.OptionH
+                }.Where(o => !string.IsNullOrEmpty(o)).ToArray(),
+                correctAnswer = l.CorrectAnswer,
+                points = 1 // Default points
+            }).OrderBy(l => l.questionId);
 
-            return Ok(listeningExamDtos);
+            return Ok(result);
         }
 
         [HttpPost]

@@ -10,6 +10,9 @@ interface ExamSet {
   targetQuestions: number;
   questionCount: number;
   createdAt: string;
+  readingContext?: string;
+  readingImage?: string;
+  listeningImage?: string;
 }
 
 interface Question {
@@ -333,6 +336,49 @@ export default function ExamSetDetail() {
               <p className="text-gray-700 dark:text-gray-300 mb-4">
                 {examSet.description || 'No description provided'}
               </p>
+              
+              {/* Reading Context - Only show for reading type */}
+              {type === 'reading' && examSet.readingContext && (
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Reading Context</h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border">
+                    <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                      {examSet.readingContext}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Reading Image - Only show for reading type */}
+              {type === 'reading' && examSet.readingImage && (
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Reading Image</h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border">
+                    <img
+                      src={examSet.readingImage}
+                      alt="Reading passage illustration"
+                      className="max-w-full h-auto rounded-lg"
+                      style={{ maxHeight: '400px' }}
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Listening Image - Only show for listening type */}
+              {type === 'listening' && examSet.listeningImage && (
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Listening Image</h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border">
+                    <img
+                      src={examSet.listeningImage}
+                      alt="Listening material illustration"
+                      className="max-w-full h-auto rounded-lg"
+                      style={{ maxHeight: '400px' }}
+                    />
+                  </div>
+                </div>
+              )}
+              
               <div className="flex items-center space-x-6 text-sm text-gray-600 dark:text-gray-400">
                 <span>
                   Questions: <strong className="text-black dark:text-white">{questions.length}/{examSet.targetQuestions}</strong>

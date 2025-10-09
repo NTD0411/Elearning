@@ -11,6 +11,7 @@
     "deploy": "touch out/.nojekyll && gh-pages -d out --dotfiles"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@iconify/icons-ion": "^1.2.10",
     "@iconify/react": "^5.0.1",
     "aos": "^2.3.4",

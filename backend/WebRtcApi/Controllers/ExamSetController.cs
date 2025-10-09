@@ -28,6 +28,8 @@ namespace WebRtcApi.Controllers
                     r.ExamSetCode,
                     r.CreatedAt,
                     r.TotalQuestions,
+                    r.ReadingContext,
+                    r.ReadingImage,
                     QuestionCount = _context.ReadingExams.Count(e => e.ExamSetId == r.ExamSetId),
                     Type = "Reading"
                 })
@@ -48,6 +50,7 @@ namespace WebRtcApi.Controllers
                     l.ExamSetCode,
                     l.CreatedAt,
                     l.TotalQuestions,
+                    l.ListeningImage,
                     QuestionCount = _context.ListeningExams.Count(e => e.ExamSetId == l.ExamSetId),
                     Type = "Listening"
                 })
@@ -109,6 +112,8 @@ namespace WebRtcApi.Controllers
                     name = r.ExamSetTitle,
                     description = "",
                     targetQuestions = r.TotalQuestions,
+                    readingContext = r.ReadingContext,
+                    readingImage = r.ReadingImage,
                     questionCount = _context.ReadingExams.Count(e => e.ExamSetId == r.ExamSetId),
                     createdAt = r.CreatedAt,
                     type = "Reading"
@@ -134,6 +139,7 @@ namespace WebRtcApi.Controllers
                     name = l.ExamSetTitle,
                     description = "",
                     targetQuestions = l.TotalQuestions,
+                    listeningImage = l.ListeningImage,
                     questionCount = _context.ListeningExams.Count(e => e.ExamSetId == l.ExamSetId),
                     createdAt = l.CreatedAt,
                     type = "Listening"
@@ -205,6 +211,8 @@ namespace WebRtcApi.Controllers
                 ExamSetCode = $"RS_{DateTime.Now:yyyyMMddHHmmss}",
                 ExamSetTitle = request.Title,
                 TotalQuestions = request.TargetQuestions,
+                ReadingContext = request.ReadingContext,
+                ReadingImage = request.ReadingImage,
                 CreatedAt = DateTime.Now
             };
 
@@ -223,6 +231,7 @@ namespace WebRtcApi.Controllers
                 ExamSetCode = $"LS_{DateTime.Now:yyyyMMddHHmmss}",
                 ExamSetTitle = request.Title,
                 TotalQuestions = request.TargetQuestions,
+                ListeningImage = request.ListeningImage,
                 CreatedAt = DateTime.Now
             };
 
@@ -425,6 +434,9 @@ namespace WebRtcApi.Controllers
     {
         public string Title { get; set; } = string.Empty;
         public int TargetQuestions { get; set; } = 5;
+        public string? ReadingContext { get; set; }
+        public string? ReadingImage { get; set; }
+        public string? ListeningImage { get; set; }
     }
 
     public class UpdateExamSetRequest

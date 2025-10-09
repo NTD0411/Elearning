@@ -24,7 +24,9 @@ export default function RootLayout({
             defaultTheme="light"
           >
             <Header />
-            {children}
+            <main className="min-h-screen pt-[80px]">
+              {children}
+            </main>
             <Footer />
             <ScrollToTop />
             <Toaster position="top-right" />
