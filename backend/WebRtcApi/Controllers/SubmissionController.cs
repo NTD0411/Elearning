@@ -219,4 +219,109 @@ public class SubmissionController : ControllerBase
         return Ok(submissionDtos);
     }
 
+    [HttpGet("mentor")]
+    public async Task<ActionResult<IEnumerable<SubmissionHistoryDto>>> GetMentorSubmissions()
+    {
+        try
+        {
+            // Get all Writing and Speaking submissions that need grading
+            var submissions = await _context.Submissions
+                .Where(s => (s.ExamType != null && (s.ExamType.ToLower() == "writing" || s.ExamType.ToLower() == "speaking")))
+                .Include(s => s.User)
+                .Include(s => s.ExamCourse)
+                .OrderByDescending(s => s.SubmittedAt)
+                .ToListAsync();
+
+            var historyDtos = new List<SubmissionHistoryDto>();
+
+            foreach (var submission in submissions)
+            {
+                var historyDto = new SubmissionHistoryDto
+                {
+                    SubmissionId = submission.SubmissionId,
+                    UserId = submission.UserId,
+                    ExamCourseId = submission.ExamCourseId,
+                    ExamType = submission.ExamType,
+                    ExamId = submission.ExamId,
+                    Answers = submission.Answers,
+                    AnswerText = submission.AnswerText,
+                    AnswerAudioUrl = submission.AnswerAudioUrl,
+                    TotalWordCount = submission.TotalWordCount,
+                    TimeSpent = submission.TimeSpent,
+                    SubmittedAt = submission.SubmittedAt,
+                    AiScore = submission.AiScore,
+                    MentorScore = submission.MentorScore,
+                    Status = submission.Status,
+                    CourseTitle = submission.ExamCourse?.CourseTitle,
+                    CourseCode = submission.ExamCourse?.CourseCode,
+                    StudentName = submission.User?.FullName ?? "Unknown Student"
+                };
+
+                // Get exam title based on exam type
+                if (submission.ExamType?.ToLower() == "writing" && submission.ExamId.HasValue)
+                {
+                    var writingExam = await _context.WritingExams
+                        .Include(w => w.ExamSet)
+                        .FirstOrDefaultAsync(w => w.WritingExamId == submission.ExamId);
+                    historyDto.ExamTitle = writingExam?.ExamSet?.ExamSetTitle ?? "Writing Exam";
+                }
+                else if (submission.ExamType?.ToLower() == "speaking" && submission.ExamId.HasValue)
+                {
+                    var speakingExam = await _context.SpeakingExams
+                        .Include(s => s.ExamSet)
+                        .FirstOrDefaultAsync(s => s.SpeakingExamId == submission.ExamId);
+                    historyDto.ExamTitle = speakingExam?.ExamSet?.ExamSetTitle ?? "Speaking Exam";
+                }
+
+                historyDtos.Add(historyDto);
+            }
+
+            return Ok(historyDtos);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error fetching mentor submissions: {ex.Message}");
+        }
+    }
+
+    [HttpPut("{id}/grade")]
+    public async Task<ActionResult> GradeSubmission(int id, GradeSubmissionDto gradeDto)
+    {
+        try
+        {
+            var submission = await _context.Submissions
+                .Include(s => s.Feedbacks)
+                .FirstOrDefaultAsync(s => s.SubmissionId == id);
+
+            if (submission == null)
+            {
+                return NotFound();
+            }
+
+            // Check if submission already has feedback from another mentor
+            if (submission.Feedbacks.Any() && submission.Feedbacks.First().MentorId != gradeDto.MentorId)
+            {
+                return BadRequest("This submission has already been graded by another mentor");
+            }
+
+            submission.MentorScore = gradeDto.MentorScore;
+            submission.Status = gradeDto.Status;
+
+            // Create new feedback
+            var feedback = new Feedback
+            {
+                SubmissionId = id,
+                FeedbackText = gradeDto.FeedbackContent,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.Feedbacks.Add(feedback);
+
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error grading submission: {ex.Message}");
+        }
+    }
 }

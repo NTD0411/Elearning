@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { headerData } from "../Header/Navigation/menuData";
+import { getHeaderData } from "../Header/Navigation/menuData";
 import Logo from "./Logo";
 import Image from "next/image";
 import HeaderLink from "../Header/Navigation/HeaderLink";
@@ -23,6 +23,7 @@ const Header: React.FC = () => {
   const { data: session, status } = useSession();
   const isAuthenticated = !!session;
   const isProfilePage = pathUrl === "/profile";
+  const menuItems = getHeaderData(session?.user?.role);
 
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [sticky, setSticky] = useState(false);
@@ -113,7 +114,7 @@ const Header: React.FC = () => {
         <div className="container mx-auto lg:max-w-screen-xl md:max-w-screen-md flex items-center justify-between px-4">
           <Logo />
           <nav className="hidden lg:flex flex-grow items-center gap-8 justify-center">
-            {headerData.map((item, index) => (
+            {menuItems.map((item, index) => (
               <HeaderLink key={index} item={item} />
             ))}
           </nav>
@@ -335,7 +336,7 @@ const Header: React.FC = () => {
             ></button>
           </div>
           <nav className="flex flex-col items-start p-4">
-            {headerData.map((item, index) => (
+            {menuItems.map((item, index) => (
               <MobileHeaderLink key={index} item={item} />
             ))}
             {/* Mobile menu authentication buttons */}
