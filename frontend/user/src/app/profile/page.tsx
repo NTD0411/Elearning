@@ -13,6 +13,14 @@ export default function ProfilePage() {
   const { user, isAuthenticated, isLoading, accessToken } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Add padding for header height
+  React.useEffect(() => {
+    document.body.style.paddingTop = "80px"; // Add padding for fixed header
+    return () => {
+      document.body.style.paddingTop = "0"; // Reset padding when component unmounts
+    };
+  }, []);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPasswordConfirmDialog, setShowPasswordConfirmDialog] = useState(false);
   const [pendingFormData, setPendingFormData] = useState<any>(null);

@@ -22,6 +22,7 @@ const Header: React.FC = () => {
   const { theme, setTheme } = useTheme();
   const { data: session, status } = useSession();
   const isAuthenticated = !!session;
+  const isProfilePage = pathUrl === "/profile";
 
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [sticky, setSticky] = useState(false);

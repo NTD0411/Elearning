@@ -25,11 +25,57 @@ namespace WebRtcApi.Controllers
             {
                 WritingExamId = w.WritingExamId,
                 ExamSetId = w.ExamSetId,
-                QuestionText = w.QuestionText,
+                ExamTitle = w.ExamSet?.ExamSetTitle ?? "IELTS Writing Test",
+                Task1Title = w.Task1Title,
+                Task1Description = w.Task1Description,
+                Task1ImageUrl = w.Task1ImageUrl,
+                Task1Requirements = w.Task1Requirements,
+                Task1MinWords = w.Task1MinWords,
+                Task1MaxTime = w.Task1MaxTime,
+                Task2Title = w.Task2Title,
+                Task2Question = w.Task2Question,
+                Task2Context = w.Task2Context,
+                Task2Requirements = w.Task2Requirements,
+                Task2MinWords = w.Task2MinWords,
+                Task2MaxTime = w.Task2MaxTime,
+                TotalTimeMinutes = w.TotalTimeMinutes,
+                Instructions = w.Instructions,
                 CreatedAt = w.CreatedAt
             });
 
             return Ok(writingExamDtos);
+        }
+
+        [HttpGet("course/{courseId}")]
+        public async Task<ActionResult<WritingExamDto>> GetByCourseId(int courseId)
+        {
+            var writingExam = await _repository.GetByCourseIdAsync(courseId);
+            if (writingExam == null)
+                return NotFound($"Writing exam for course ID {courseId} not found.");
+
+            var writingExamDto = new WritingExamDto
+            {
+                WritingExamId = writingExam.WritingExamId,
+                ExamSetId = writingExam.ExamSetId,
+                ExamTitle = writingExam.ExamSet?.ExamSetTitle ?? "IELTS Writing Test",
+                Task1Title = writingExam.Task1Title,
+                Task1Description = writingExam.Task1Description,
+                Task1ImageUrl = writingExam.Task1ImageUrl,
+                Task1Requirements = writingExam.Task1Requirements,
+                Task1MinWords = writingExam.Task1MinWords,
+                Task1MaxTime = writingExam.Task1MaxTime,
+                Task2Title = writingExam.Task2Title,
+                Task2Question = writingExam.Task2Question,
+                Task2Context = writingExam.Task2Context,
+                Task2Requirements = writingExam.Task2Requirements,
+                Task2MinWords = writingExam.Task2MinWords,
+                Task2MaxTime = writingExam.Task2MaxTime,
+                TotalTimeMinutes = writingExam.TotalTimeMinutes,
+                Instructions = writingExam.Instructions,
+                CreatedAt = writingExam.CreatedAt
+            };
+
+            return Ok(writingExamDto);
         }
 
         [HttpGet("{id}")]
@@ -43,7 +89,21 @@ namespace WebRtcApi.Controllers
             {
                 WritingExamId = writingExam.WritingExamId,
                 ExamSetId = writingExam.ExamSetId,
-                QuestionText = writingExam.QuestionText,
+                ExamTitle = writingExam.ExamSet?.ExamSetTitle ?? "IELTS Writing Test",
+                Task1Title = writingExam.Task1Title,
+                Task1Description = writingExam.Task1Description,
+                Task1ImageUrl = writingExam.Task1ImageUrl,
+                Task1Requirements = writingExam.Task1Requirements,
+                Task1MinWords = writingExam.Task1MinWords,
+                Task1MaxTime = writingExam.Task1MaxTime,
+                Task2Title = writingExam.Task2Title,
+                Task2Question = writingExam.Task2Question,
+                Task2Context = writingExam.Task2Context,
+                Task2Requirements = writingExam.Task2Requirements,
+                Task2MinWords = writingExam.Task2MinWords,
+                Task2MaxTime = writingExam.Task2MaxTime,
+                TotalTimeMinutes = writingExam.TotalTimeMinutes,
+                Instructions = writingExam.Instructions,
                 CreatedAt = writingExam.CreatedAt
             };
 
@@ -58,7 +118,21 @@ namespace WebRtcApi.Controllers
             {
                 WritingExamId = w.WritingExamId,
                 ExamSetId = w.ExamSetId,
-                QuestionText = w.QuestionText,
+                ExamTitle = w.ExamSet?.ExamSetTitle ?? "IELTS Writing Test",
+                Task1Title = w.Task1Title,
+                Task1Description = w.Task1Description,
+                Task1ImageUrl = w.Task1ImageUrl,
+                Task1Requirements = w.Task1Requirements,
+                Task1MinWords = w.Task1MinWords,
+                Task1MaxTime = w.Task1MaxTime,
+                Task2Title = w.Task2Title,
+                Task2Question = w.Task2Question,
+                Task2Context = w.Task2Context,
+                Task2Requirements = w.Task2Requirements,
+                Task2MinWords = w.Task2MinWords,
+                Task2MaxTime = w.Task2MaxTime,
+                TotalTimeMinutes = w.TotalTimeMinutes,
+                Instructions = w.Instructions,
                 CreatedAt = w.CreatedAt
             });
 
@@ -76,7 +150,21 @@ namespace WebRtcApi.Controllers
             {
                 WritingExamId = writingExam.WritingExamId,
                 ExamSetId = writingExam.ExamSetId,
-                QuestionText = writingExam.QuestionText,
+                ExamTitle = writingExam.ExamSet?.ExamSetTitle ?? "IELTS Writing Test",
+                Task1Title = writingExam.Task1Title,
+                Task1Description = writingExam.Task1Description,
+                Task1ImageUrl = writingExam.Task1ImageUrl,
+                Task1Requirements = writingExam.Task1Requirements,
+                Task1MinWords = writingExam.Task1MinWords,
+                Task1MaxTime = writingExam.Task1MaxTime,
+                Task2Title = writingExam.Task2Title,
+                Task2Question = writingExam.Task2Question,
+                Task2Context = writingExam.Task2Context,
+                Task2Requirements = writingExam.Task2Requirements,
+                Task2MinWords = writingExam.Task2MinWords,
+                Task2MaxTime = writingExam.Task2MaxTime,
+                TotalTimeMinutes = writingExam.TotalTimeMinutes,
+                Instructions = writingExam.Instructions,
                 CreatedAt = writingExam.CreatedAt
             };
 
@@ -97,7 +185,21 @@ namespace WebRtcApi.Controllers
             {
                 WritingExamId = writingExam.WritingExamId,
                 ExamSetId = writingExam.ExamSetId,
-                QuestionText = writingExam.QuestionText,
+                ExamTitle = writingExam.ExamSet?.ExamSetTitle ?? "IELTS Writing Test",
+                Task1Title = writingExam.Task1Title,
+                Task1Description = writingExam.Task1Description,
+                Task1ImageUrl = writingExam.Task1ImageUrl,
+                Task1Requirements = writingExam.Task1Requirements,
+                Task1MinWords = writingExam.Task1MinWords,
+                Task1MaxTime = writingExam.Task1MaxTime,
+                Task2Title = writingExam.Task2Title,
+                Task2Question = writingExam.Task2Question,
+                Task2Context = writingExam.Task2Context,
+                Task2Requirements = writingExam.Task2Requirements,
+                Task2MinWords = writingExam.Task2MinWords,
+                Task2MaxTime = writingExam.Task2MaxTime,
+                TotalTimeMinutes = writingExam.TotalTimeMinutes,
+                Instructions = writingExam.Instructions,
                 CreatedAt = writingExam.CreatedAt
             };
 
