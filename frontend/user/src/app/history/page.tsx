@@ -469,7 +469,60 @@ export default function ExamHistoryPage() {
                 <div className="mb-6">
                   <h4 className="font-medium text-gray-900 mb-3">Submitted Answers</h4>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    {selectedSubmission.examType?.toLowerCase() === 'writing' ? (
+                    {selectedSubmission.examType?.toLowerCase() === 'speaking' ? (
+                      // Handle Speaking Exam answers (audio files)
+                      (() => {
+                        const audioFiles = selectedSubmission.answers.split(';').filter(path => path.trim());
+                        return (
+                          <div className="space-y-4">
+                            <div className="text-sm text-gray-600 mb-3">
+                              🎤 Speaking exam contains {audioFiles.length} audio recording{audioFiles.length !== 1 ? 's' : ''}
+                            </div>
+                            {audioFiles.map((filePath, index) => (
+                              <div key={index} className="bg-white p-4 rounded-lg border">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h5 className="font-medium text-gray-700">
+                                    Recording {index + 1}
+                                  </h5>
+                                  <span className="text-xs text-gray-500">
+                                    {filePath.split('/').pop()?.split('_')[1] || `Question ${index + 1}`}
+                                  </span>
+                                </div>
+                                <div className="flex items-center space-x-3">
+                                  <audio 
+                                    controls 
+                                    className="flex-1"
+                                    preload="metadata"
+                                  >
+                                    <source src={`http://localhost:5074${filePath}`} type="audio/wav" />
+                                    <source src={`http://localhost:5074${filePath}`} type="audio/mpeg" />
+                                    Your browser does not support the audio element.
+                                  </audio>
+                                  <a
+                                    href={`http://localhost:5074${filePath}`}
+                                    download={`speaking_recording_${index + 1}.wav`}
+                                    className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+                                  >
+                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Download
+                                  </a>
+                                </div>
+                                <div className="mt-2 text-xs text-gray-500">
+                                  File: {filePath}
+                                </div>
+                              </div>
+                            ))}
+                            {audioFiles.length === 0 && (
+                              <div className="text-center py-4 text-gray-500">
+                                No audio recordings found
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()
+                    ) : selectedSubmission.examType?.toLowerCase() === 'writing' ? (
                       // Handle Writing Exam answers (JSON format with task1 and task2)
                       (() => {
                         try {

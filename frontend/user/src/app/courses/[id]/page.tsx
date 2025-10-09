@@ -147,10 +147,20 @@ export default function CourseDetailPage() {
                     <h4 className="text-md font-semibold text-gray-900 mb-3">Quick Actions</h4>
                     <div className="space-y-2">
                       <Link
-                        href={`/exam/writing?courseId=${course.examCourseId}`}
-                        className="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded hover:bg-blue-700 transition-colors"
+                        href={`/exam/${course.examType.toLowerCase()}?courseId=${course.examCourseId}`}
+                        className={`block w-full text-white text-center py-2 px-4 rounded transition-colors ${
+                          course.examType.toLowerCase() === 'speaking' ? 'bg-green-600 hover:bg-green-700' :
+                          course.examType.toLowerCase() === 'writing' ? 'bg-blue-600 hover:bg-blue-700' :
+                          course.examType.toLowerCase() === 'reading' ? 'bg-orange-600 hover:bg-orange-700' :
+                          course.examType.toLowerCase() === 'listening' ? 'bg-purple-600 hover:bg-purple-700' :
+                          'bg-gray-600 hover:bg-gray-700'
+                        }`}
                       >
-                        Start Writing Exam
+                        Start {course.examType} Exam
+                        {course.examType.toLowerCase() === 'speaking' && ' 🎤'}
+                        {course.examType.toLowerCase() === 'writing' && ' ✍️'}
+                        {course.examType.toLowerCase() === 'reading' && ' 📖'}
+                        {course.examType.toLowerCase() === 'listening' && ' 🎧'}
                       </Link>
                       <Link
                         href="/courses"

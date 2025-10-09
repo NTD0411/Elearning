@@ -42,6 +42,11 @@ namespace WebRtcApi.Controllers
                 SpeakingExamId = speakingExam.SpeakingExamId,
                 ExamSetId = speakingExam.ExamSetId,
                 QuestionText = speakingExam.QuestionText,
+                PartNumber = speakingExam.PartNumber,
+                PartTitle = speakingExam.PartTitle,
+                CueCardTopic = speakingExam.CueCardTopic,
+                CueCardPrompts = speakingExam.CueCardPrompts,
+                TimeLimit = speakingExam.TimeLimit,
                 CreatedAt = speakingExam.CreatedAt
             };
 
@@ -57,6 +62,11 @@ namespace WebRtcApi.Controllers
                 SpeakingExamId = s.SpeakingExamId,
                 ExamSetId = s.ExamSetId,
                 QuestionText = s.QuestionText,
+                PartNumber = s.PartNumber,
+                PartTitle = s.PartTitle,
+                CueCardTopic = s.CueCardTopic,
+                CueCardPrompts = s.CueCardPrompts,
+                TimeLimit = s.TimeLimit,
                 CreatedAt = s.CreatedAt
             });
 
@@ -75,6 +85,11 @@ namespace WebRtcApi.Controllers
                 SpeakingExamId = speakingExam.SpeakingExamId,
                 ExamSetId = speakingExam.ExamSetId,
                 QuestionText = speakingExam.QuestionText,
+                PartNumber = speakingExam.PartNumber,
+                PartTitle = speakingExam.PartTitle,
+                CueCardTopic = speakingExam.CueCardTopic,
+                CueCardPrompts = speakingExam.CueCardPrompts,
+                TimeLimit = speakingExam.TimeLimit,
                 CreatedAt = speakingExam.CreatedAt
             };
 
@@ -96,6 +111,11 @@ namespace WebRtcApi.Controllers
                 SpeakingExamId = speakingExam.SpeakingExamId,
                 ExamSetId = speakingExam.ExamSetId,
                 QuestionText = speakingExam.QuestionText,
+                PartNumber = speakingExam.PartNumber,
+                PartTitle = speakingExam.PartTitle,
+                CueCardTopic = speakingExam.CueCardTopic,
+                CueCardPrompts = speakingExam.CueCardPrompts,
+                TimeLimit = speakingExam.TimeLimit,
                 CreatedAt = speakingExam.CreatedAt
             };
 

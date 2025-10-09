@@ -60,7 +60,7 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
       },
       speaking: {
         title: 'Speaking Exam Set',
-        description: 'Create a new exam set container for speaking questions',
+        description: 'Create a new exam set container for IELTS speaking test (Part 1: Interview, Part 2: Long Turn, Part 3: Discussion)',
         color: 'purple',
         prefix: 'SS',
         defaultTime: 15
@@ -141,7 +141,7 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
       
       const requestBody = {
         title: formData.examSetTitle,
-        targetQuestions: formData.targetQuestions,
+        targetQuestions: selectedType === 'speaking' ? 9 : formData.targetQuestions, // Default 9 for speaking (4+1+4)
         ...(selectedType === 'reading' && {
           readingContext: formData.readingContext,
           readingImage: imageUrl
@@ -458,68 +458,88 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
           </>
         )}
 
-        {/* Difficulty and Time Limit */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Target Number of Questions
-            </label>
-            {selectedType === 'writing' ? (
-              <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
-                <span className="text-gray-700 dark:text-gray-300">2 tasks (Task 1 + Task 2)</span>
-                <input type="hidden" name="targetQuestions" value={2} />
+        {/* Example Info - Only show for non-speaking types */}
+        {selectedType !== 'speaking' && (
+          <>
+            {/* Difficulty and Time Limit */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Target Number of Questions
+                </label>
+                {selectedType === 'writing' ? (
+                  <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                    <span className="text-gray-700 dark:text-gray-300">2 tasks (Task 1 + Task 2)</span>
+                    <input type="hidden" name="targetQuestions" value={2} />
+                  </div>
+                ) : (
+                  <select
+                    name="targetQuestions"
+                    value={formData.targetQuestions}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    <option value={3}>3 questions</option>
+                    <option value={4}>4 questions</option>
+                    <option value={5}>5 questions</option>
+                    <option value={6}>6 questions</option>
+                    <option value={7}>7 questions</option>
+                    <option value={8}>8 questions</option>
+                    <option value={10}>10 questions</option>
+                    <option value={15}>15 questions</option>
+                    <option value={20}>20 questions</option>
+                  </select>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {selectedType === 'writing' 
+                    ? 'Writing exams always contain 2 tasks: Task 1 and Task 2'
+                    : 'This is your target. You can add questions individually after creating the exam set.'
+                  }
+                </p>
               </div>
-            ) : (
-              <select
-                name="targetQuestions"
-                value={formData.targetQuestions}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              >
-                <option value={3}>3 questions</option>
-                <option value={4}>4 questions</option>
-                <option value={5}>5 questions</option>
-                <option value={6}>6 questions</option>
-                <option value={7}>7 questions</option>
-                <option value={8}>8 questions</option>
-                <option value={10}>10 questions</option>
-                <option value={15}>15 questions</option>
-                <option value={20}>20 questions</option>
-              </select>
-            )}
-            <p className="text-xs text-gray-500 mt-1">
-              {selectedType === 'writing' 
-                ? 'Writing exams always contain 2 tasks: Task 1 and Task 2'
-                : 'This is your target. You can add questions individually after creating the exam set.'
-              }
+            </div>
+          </>
+        )}
+
+        {/* Speaking-specific info */}
+        {selectedType === 'speaking' && (
+          <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
+            <h4 className="font-medium text-purple-800 dark:text-purple-200 mb-2">
+              📢 IELTS Speaking Exam Set
+            </h4>
+            <p className="text-sm text-purple-700 dark:text-purple-300">
+              After creating this exam set, you'll configure the 3-part structure (Part 1: Interview, Part 2: Long Turn, Part 3: Discussion) 
+              and add questions when creating Speaking Questions.
             </p>
           </div>
-        </div>
+        )}
 
-        {/* Example Info */}
-        <div className={`bg-${currentTypeInfo.color}-50 dark:bg-${currentTypeInfo.color}-900/20 p-4 rounded-lg`}>
-          <h4 className={`font-medium text-${currentTypeInfo.color}-800 dark:text-${currentTypeInfo.color}-200 mb-2`}>
-            💡 Tips for Creating {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Exam Sets:
-          </h4>
-          <ul className={`text-sm text-${currentTypeInfo.color}-700 dark:text-${currentTypeInfo.color}-300 space-y-1`}>
-            {selectedType === 'writing' ? (
-              <>
-                <li>• Use descriptive titles (e.g., "IELTS Academic Writing Practice", "General Training Set A")</li>
-                <li>• Each writing exam set contains exactly 2 tasks (Task 1 + Task 2)</li>
-                <li>• Standard time: 60 minutes total (20 min Task 1, 40 min Task 2)</li>
-                <li>• Academic focuses on charts/graphs + essays; General focuses on letters + essays</li>
-                <li>• After creating the exam set, add individual writing tasks to it</li>
-              </>
-            ) : (
-              <>
-                <li>• Use descriptive titles (e.g., "IELTS Academic {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)}", "TOEFL {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Set A")</li>
-                <li>• Beginner: 5-10 questions, Intermediate: 10-15 questions, Advanced: 15-20 questions</li>
-                <li>• Recommended time limit: {currentTypeInfo.defaultTime} minutes for {selectedType}</li>
-                <li>• After creating the exam set, you can add individual questions to it</li>
-              </>
-            )}
-          </ul>
-        </div>
+        {/* Example Info for non-speaking types */}
+        {selectedType !== 'speaking' && (
+          <div className={`bg-${currentTypeInfo.color}-50 dark:bg-${currentTypeInfo.color}-900/20 p-4 rounded-lg`}>
+            <h4 className={`font-medium text-${currentTypeInfo.color}-800 dark:text-${currentTypeInfo.color}-200 mb-2`}>
+              💡 Tips for Creating {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Exam Sets:
+            </h4>
+            <ul className={`text-sm text-${currentTypeInfo.color}-700 dark:text-${currentTypeInfo.color}-300 space-y-1`}>
+              {selectedType === 'writing' ? (
+                <>
+                  <li>• Use descriptive titles (e.g., "IELTS Academic Writing Practice", "General Training Set A")</li>
+                  <li>• Each writing exam set contains exactly 2 tasks (Task 1 + Task 2)</li>
+                  <li>• Standard time: 60 minutes total (20 min Task 1, 40 min Task 2)</li>
+                  <li>• Academic focuses on charts/graphs + essays; General focuses on letters + essays</li>
+                  <li>• After creating the exam set, add individual writing tasks to it</li>
+                </>
+              ) : (
+                <>
+                  <li>• Use descriptive titles (e.g., "IELTS Academic {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)}", "TOEFL {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Set A")</li>
+                  <li>• Beginner: 5-10 questions, Intermediate: 10-15 questions, Advanced: 15-20 questions</li>
+                  <li>• Recommended time limit: {currentTypeInfo.defaultTime} minutes for {selectedType}</li>
+                  <li>• After creating the exam set, you can add individual questions to it</li>
+                </>
+              )}
+            </ul>
+          </div>
+        )}
 
         {/* Form Actions */}
         <div className="flex justify-between">
