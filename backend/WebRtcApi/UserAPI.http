@@ -1,0 +1,51 @@
+### Test User Management APIs
+
+# Variables
+@baseUrl = http://localhost:5074/api
+@token = your_jwt_token_here
+
+### 1. Get all users with pagination
+GET {{baseUrl}}/user
+Accept: application/json
+
+### 2. Get all users with filters
+GET {{baseUrl}}/user?role=student&page=1&pageSize=5&sortBy=FullName&sortDirection=asc
+Accept: application/json
+
+### 3. Get all students
+GET {{baseUrl}}/user/students
+Accept: application/json
+
+### 4. Get all mentors
+GET {{baseUrl}}/user/mentors
+Accept: application/json
+
+### 5. Get specific user by ID
+GET {{baseUrl}}/user/1
+Accept: application/json
+
+### 6. Search users by name/email
+GET {{baseUrl}}/user?searchTerm=test&page=1&pageSize=10
+Accept: application/json
+
+### 7. Filter by role and approval status
+GET {{baseUrl}}/user?role=student&approved=true&page=1&pageSize=10
+Accept: application/json
+
+### 8. Update user status (requires authentication)
+PUT {{baseUrl}}/user/1/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+"active"
+
+### 9. Approve user (requires authentication)
+PUT {{baseUrl}}/user/1/approve
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+true
+
+### 10. Delete user (requires authentication)
+DELETE {{baseUrl}}/user/1
+Authorization: Bearer {{token}}
