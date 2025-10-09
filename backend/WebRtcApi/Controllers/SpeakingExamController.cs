@@ -1,11 +1,13 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebRtcApi.Repositories.Exams;
 using WebRtcApi.Dtos.Exams;
+using WebRtcApi.Repositories.Exams;
 
 namespace WebRtcApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class SpeakingExamController : ControllerBase
     {
         private readonly ISpeakingExamRepository _repository;

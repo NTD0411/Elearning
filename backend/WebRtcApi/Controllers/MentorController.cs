@@ -7,6 +7,7 @@ namespace WebRtcApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class MentorController : ControllerBase
     {
         private readonly IUserRepository _userRepository;

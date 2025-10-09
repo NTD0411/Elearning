@@ -57,7 +57,9 @@ namespace WebRtcApi.Data
                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                     .Build();
 
-                optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnections"));
+                //optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnections"));
+                optionsBuilder.UseSqlServer(configuration.GetConnectionString("DeployConnections"));
+                
             }
         }
 

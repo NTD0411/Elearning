@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebRtcApi.Data;
 using WebRtcApi.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebRtcApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class ExamSetController : ControllerBase
     {
         private readonly DatabaseContext _context;
