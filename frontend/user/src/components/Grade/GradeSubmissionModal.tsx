@@ -49,7 +49,7 @@ export default function GradeSubmissionModal({
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5074/api/Submission/${submission.submissionId}/grade`, {
+  const response = await fetch(`https://e-learningsite.runasp.net/api/Submission/${submission.submissionId}/grade`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

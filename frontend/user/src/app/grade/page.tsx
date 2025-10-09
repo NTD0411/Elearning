@@ -38,7 +38,7 @@ function GradeModal({ submission, onClose, onGradeSubmit }: GradeModalProps) {
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5074/api/Submission/${submission.submissionId}/grade`, {
+  const response = await fetch(`https://e-learningsite.runasp.net/api/Submission/${submission.submissionId}/grade`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -173,7 +173,7 @@ export default function GradePage() {
 
   const fetchSubmissions = async () => {
     try {
-      const response = await fetch("http://localhost:5074/api/Submission/mentor", {
+  const response = await fetch("https://e-learningsite.runasp.net/api/Submission/mentor", {
         headers: {
           Authorization: `Bearer ${session?.user?.accessToken}`,
         },
