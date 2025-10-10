@@ -1,7 +1,6 @@
-"use client";
+import { redirect } from 'next/navigation';
 
-import Courses from "@/components/Home/Courses/index";
-
+// Redirect từ /courses về /courses/all hoặc page courses chính
 export default function CoursesPage() {
-  return <Courses />;
+  redirect('/courses/all');
 }

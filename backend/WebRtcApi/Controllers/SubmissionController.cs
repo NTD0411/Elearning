@@ -11,10 +11,12 @@ namespace WebRtcApi.Controllers;
 public class SubmissionController : ControllerBase
 {
     private readonly DatabaseContext _context;
+    private readonly IWebHostEnvironment _environment;
 
-    public SubmissionController(DatabaseContext context)
+    public SubmissionController(DatabaseContext context, IWebHostEnvironment environment)
     {
         _context = context;
+        _environment = environment;
     }
 
     [HttpPost]
@@ -324,4 +326,72 @@ public class SubmissionController : ControllerBase
             return BadRequest($"Error grading submission: {ex.Message}");
         }
     }
+    [HttpPost("speaking")]
+    public async Task<ActionResult<SubmissionDto>> CreateSpeakingSubmission([FromForm] SpeakingSubmissionDto speakingDto)
+    {
+        try
+        {
+            var submission = new Submission
+            {
+                UserId = speakingDto.UserId,
+                ExamCourseId = 1, // Tạm thời hardcode
+                ExamType = "speaking",
+                ExamId = speakingDto.ExamSetId,
+                Answers = "", // Sẽ lưu paths của audio files
+                SubmittedAt = DateTime.UtcNow,
+                Status = "submitted"
+            };
+
+            _context.Submissions.Add(submission);
+            await _context.SaveChangesAsync();
+
+            // Save audio files
+            var audioFiles = new List<string>();
+            var uploadsDir = Path.Combine(_environment.WebRootPath, "uploads", "speaking");
+            
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+
+            foreach (var file in speakingDto.AudioFiles)
+            {
+                if (file.Length > 0)
+                {
+                    var fileName = $"{submission.SubmissionId}_{file.FileName}_{Guid.NewGuid()}.wav";
+                    var filePath = Path.Combine(uploadsDir, fileName);
+                    
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+                    
+                    audioFiles.Add($"/uploads/speaking/{fileName}");
+                }
+            }
+
+            // Update submission with audio file paths
+            submission.Answers = string.Join(";", audioFiles);
+            await _context.SaveChangesAsync();
+
+            var submissionDto = new SubmissionDto
+            {
+                SubmissionId = submission.SubmissionId,
+                UserId = submission.UserId,
+                ExamCourseId = submission.ExamCourseId,
+                ExamType = submission.ExamType,
+                ExamId = submission.ExamId,
+                Answers = submission.Answers,
+                SubmittedAt = submission.SubmittedAt,
+                Status = submission.Status
+            };
+
+            return Ok(submissionDto);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error creating speaking submission: {ex.Message}");
+        }
+    }
+
 }

@@ -4,12 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import Logo from "../Header/Logo";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { getHeaderData } from "../Header/Navigation/menuData";
+import { headerData } from "../Header/Navigation/menuData";
+import { HeaderItem } from "@/types/menu";
 import { useSession } from "next-auth/react";
 
 const Footer = () => {
   const { data: session } = useSession();
-  const menuItems = getHeaderData(session?.user?.role);
+  const menuItems = headerData;
 
   return (
     <footer className="bg-deepSlate py-10">
@@ -38,7 +39,7 @@ const Footer = () => {
           <div className="col-span-2">
             <h3 className="mb-4 text-2xl font-medium">Links</h3>
             <ul>
-              {menuItems.map((item, index) => (
+              {menuItems.map((item: HeaderItem, index: number) => (
                 <li key={index} className="mb-2 text-black/50 hover:text-primary w-fit">
                   <Link href={item.href}>
                     {item.label}

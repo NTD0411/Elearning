@@ -42,6 +42,11 @@ namespace WebRtcApi.Repositories.Exams
             {
                 ExamSetId = createDto.ExamSetId,
                 QuestionText = createDto.QuestionText,
+                PartNumber = createDto.PartNumber,
+                PartTitle = createDto.PartTitle,
+                CueCardTopic = createDto.CueCardTopic,
+                CueCardPrompts = createDto.CueCardPrompts,
+                TimeLimit = createDto.TimeLimit,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -62,6 +67,21 @@ namespace WebRtcApi.Repositories.Exams
             
             if (!string.IsNullOrEmpty(updateDto.QuestionText))
                 speakingExam.QuestionText = updateDto.QuestionText;
+
+            if (updateDto.PartNumber.HasValue)
+                speakingExam.PartNumber = updateDto.PartNumber.Value;
+
+            if (!string.IsNullOrEmpty(updateDto.PartTitle))
+                speakingExam.PartTitle = updateDto.PartTitle;
+
+            if (updateDto.CueCardTopic != null)
+                speakingExam.CueCardTopic = updateDto.CueCardTopic;
+
+            if (updateDto.CueCardPrompts != null)
+                speakingExam.CueCardPrompts = updateDto.CueCardPrompts;
+
+            if (updateDto.TimeLimit.HasValue)
+                speakingExam.TimeLimit = updateDto.TimeLimit;
 
             await _context.SaveChangesAsync();
             return await GetByIdAsync(id);
