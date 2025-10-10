@@ -22,6 +22,17 @@ interface SubmissionHistory {
   courseCode?: string;
   timeSpentFormatted: string;
   scoreFormatted: string;
+  
+  // AI Detailed Scoring Fields for Writing
+  aiTaskAchievementScore?: number;
+  aiTaskAchievementFeedback?: string;
+  aiCoherenceCohesionScore?: number;
+  aiCoherenceCohesionFeedback?: string;
+  aiLexicalResourceScore?: number;
+  aiLexicalResourceFeedback?: string;
+  aiGrammaticalRangeScore?: number;
+  aiGrammaticalRangeFeedback?: string;
+  aiGeneralFeedback?: string;
 }
 
 export default function ExamHistoryPage() {
@@ -345,6 +356,13 @@ export default function ExamHistoryPage() {
                         <p className="text-sm font-medium text-gray-900">
                           Score: {submission.scoreFormatted}
                         </p>
+                        {submission.examType?.toLowerCase() === 'writing' && submission.aiScore && (
+                          <div className="flex items-center justify-end mt-1">
+                            <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                              AI: Band {submission.aiScore}
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <button
                         onClick={() => handleViewDetails(submission)}
@@ -452,17 +470,94 @@ export default function ExamHistoryPage() {
                   <div className="bg-blue-50 p-3 rounded-lg">
                     <div className="text-sm font-medium text-blue-800">AI Score</div>
                     <div className="text-lg font-bold text-blue-900">
-                      {selectedSubmission.aiScore ? `${selectedSubmission.aiScore}/100` : 'Not graded'}
+                      {selectedSubmission.aiScore ? `Band ${selectedSubmission.aiScore}` : 'Not graded'}
                     </div>
                   </div>
                   <div className="bg-green-50 p-3 rounded-lg">
                     <div className="text-sm font-medium text-green-800">Mentor Score</div>
                     <div className="text-lg font-bold text-green-900">
-                      {selectedSubmission.mentorScore ? `${selectedSubmission.mentorScore}/100` : 'Not graded'}
+                      {selectedSubmission.mentorScore ? `Band ${selectedSubmission.mentorScore}` : 'Not graded'}
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* AI Detailed Scoring for Writing */}
+              {selectedSubmission.examType?.toLowerCase() === 'writing' && selectedSubmission.aiScore && (
+                <div className="mb-6">
+                  <h4 className="font-medium text-gray-900 mb-3">AI Detailed Scoring (IELTS Criteria)</h4>
+                  <div className="space-y-4">
+                    
+                    {/* Task Achievement */}
+                    {selectedSubmission.aiTaskAchievementScore && (
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-purple-800">Task Achievement</span>
+                          <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-sm font-bold">
+                            {selectedSubmission.aiTaskAchievementScore}/9
+                          </span>
+                        </div>
+                        {selectedSubmission.aiTaskAchievementFeedback && (
+                          <p className="text-sm text-gray-700">{selectedSubmission.aiTaskAchievementFeedback}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Coherence and Cohesion */}
+                    {selectedSubmission.aiCoherenceCohesionScore && (
+                      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-indigo-800">Coherence and Cohesion</span>
+                          <span className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-sm font-bold">
+                            {selectedSubmission.aiCoherenceCohesionScore}/9
+                          </span>
+                        </div>
+                        {selectedSubmission.aiCoherenceCohesionFeedback && (
+                          <p className="text-sm text-gray-700">{selectedSubmission.aiCoherenceCohesionFeedback}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Lexical Resource */}
+                    {selectedSubmission.aiLexicalResourceScore && (
+                      <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-teal-800">Lexical Resource</span>
+                          <span className="bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-sm font-bold">
+                            {selectedSubmission.aiLexicalResourceScore}/9
+                          </span>
+                        </div>
+                        {selectedSubmission.aiLexicalResourceFeedback && (
+                          <p className="text-sm text-gray-700">{selectedSubmission.aiLexicalResourceFeedback}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Grammatical Range and Accuracy */}
+                    {selectedSubmission.aiGrammaticalRangeScore && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-orange-800">Grammatical Range and Accuracy</span>
+                          <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-sm font-bold">
+                            {selectedSubmission.aiGrammaticalRangeScore}/9
+                          </span>
+                        </div>
+                        {selectedSubmission.aiGrammaticalRangeFeedback && (
+                          <p className="text-sm text-gray-700">{selectedSubmission.aiGrammaticalRangeFeedback}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* General Feedback */}
+                    {selectedSubmission.aiGeneralFeedback && (
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <h5 className="font-medium text-gray-800 mb-2">General Feedback</h5>
+                        <p className="text-sm text-gray-700">{selectedSubmission.aiGeneralFeedback}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Answers */}
               {selectedSubmission.answers && (

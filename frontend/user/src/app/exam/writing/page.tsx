@@ -23,6 +23,19 @@ interface WritingExam {
   instructions: string;
 }
 
+interface AIFeedback {
+  overallBand: number;
+  taskAchievementScore: number;
+  taskAchievementFeedback: string;
+  coherenceCohesionScore: number;
+  coherenceCohesionFeedback: string;
+  lexicalResourceScore: number;
+  lexicalResourceFeedback: string;
+  grammaticalRangeScore: number;
+  grammaticalRangeFeedback: string;
+  generalFeedback: string;
+}
+
 export default function WritingExamPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -40,6 +53,10 @@ export default function WritingExamPage() {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  
+  // AI Feedback state
+  const [showAIFeedback, setShowAIFeedback] = useState(false);
+  const [aiFeedback, setAIFeedback] = useState<AIFeedback | null>(null);
 
   // Word count functions
   const countWords = (text: string) => {
@@ -141,8 +158,26 @@ export default function WritingExamPage() {
         throw new Error('Failed to submit exam');
       }
 
+      const result = await response.json();
+      
+      // Check if AI feedback is available
+      if (result.aiScore && result.aiTaskAchievementScore) {
+        setAIFeedback({
+          overallBand: result.aiScore,
+          taskAchievementScore: result.aiTaskAchievementScore,
+          taskAchievementFeedback: result.aiTaskAchievementFeedback || '',
+          coherenceCohesionScore: result.aiCoherenceCohesionScore || 0,
+          coherenceCohesionFeedback: result.aiCoherenceCohesionFeedback || '',
+          lexicalResourceScore: result.aiLexicalResourceScore || 0,
+          lexicalResourceFeedback: result.aiLexicalResourceFeedback || '',
+          grammaticalRangeScore: result.aiGrammaticalRangeScore || 0,
+          grammaticalRangeFeedback: result.aiGrammaticalRangeFeedback || '',
+          generalFeedback: result.aiGeneralFeedback || ''
+        });
+        setShowAIFeedback(true);
+      }
+
       setIsSubmitted(true);
-      alert('Exam submitted successfully!');
       
     } catch (err) {
       alert('Failed to submit exam. Please try again.');
@@ -387,9 +422,15 @@ export default function WritingExamPage() {
                     <button
                       onClick={handleSubmit}
                       disabled={submitting || task1WordCount < writingExam.task1MinWords || task2WordCount < writingExam.task2MinWords}
-                      className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                     >
-                      {submitting ? 'Submitting...' : 'Submit Writing Exam'}
+                      {submitting && (
+                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      )}
+                      <span>{submitting ? 'Submitting & Getting AI Feedback...' : 'Submit Writing Exam'}</span>
                     </button>
                   </div>
                 </div>
@@ -423,6 +464,109 @@ export default function WritingExamPage() {
           </div>
         </div>
       </div>
+
+      {/* AI Feedback Modal */}
+      {showAIFeedback && aiFeedback && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 shadow-lg rounded-md bg-white">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b">
+              <h3 className="text-xl font-semibold text-gray-900">
+                🤖 AI Scoring Results
+              </h3>
+              <button
+                onClick={() => setShowAIFeedback(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mt-4 max-h-96 overflow-y-auto">
+              {/* Overall Score */}
+              <div className="mb-6 text-center">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                  <h4 className="text-lg font-medium text-blue-800 mb-2">Overall IELTS Band Score</h4>
+                  <div className="text-4xl font-bold text-blue-900">
+                    Band {aiFeedback.overallBand}
+                  </div>
+                </div>
+              </div>
+
+              {/* Detailed Criteria */}
+              <div className="space-y-4">
+                {/* Task Achievement */}
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium text-purple-800">Task Achievement</span>
+                    <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-sm font-bold">
+                      {aiFeedback.taskAchievementScore}/9
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700">{aiFeedback.taskAchievementFeedback}</p>
+                </div>
+
+                {/* Coherence and Cohesion */}
+                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium text-indigo-800">Coherence and Cohesion</span>
+                    <span className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-sm font-bold">
+                      {aiFeedback.coherenceCohesionScore}/9
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700">{aiFeedback.coherenceCohesionFeedback}</p>
+                </div>
+
+                {/* Lexical Resource */}
+                <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium text-teal-800">Lexical Resource</span>
+                    <span className="bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-sm font-bold">
+                      {aiFeedback.lexicalResourceScore}/9
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700">{aiFeedback.lexicalResourceFeedback}</p>
+                </div>
+
+                {/* Grammatical Range and Accuracy */}
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium text-orange-800">Grammatical Range and Accuracy</span>
+                    <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-sm font-bold">
+                      {aiFeedback.grammaticalRangeScore}/9
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700">{aiFeedback.grammaticalRangeFeedback}</p>
+                </div>
+
+                {/* General Feedback */}
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h5 className="font-medium text-gray-800 mb-2">General Feedback</h5>
+                  <p className="text-sm text-gray-700">{aiFeedback.generalFeedback}</p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="mt-6 flex justify-center space-x-4">
+                <button
+                  onClick={() => setShowAIFeedback(false)}
+                  className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => router.push('/history')}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  View History
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

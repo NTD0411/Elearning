@@ -17,5 +17,17 @@ public class SubmissionDto
     public DateTime? SubmittedAt { get; set; }
     public decimal? AiScore { get; set; }
     public decimal? MentorScore { get; set; }
+    
+    // AI Detailed Scoring Fields for Writing
+    public int? AiTaskAchievementScore { get; set; }
+    public string? AiTaskAchievementFeedback { get; set; }
+    public int? AiCoherenceCohesionScore { get; set; }
+    public string? AiCoherenceCohesionFeedback { get; set; }
+    public int? AiLexicalResourceScore { get; set; }
+    public string? AiLexicalResourceFeedback { get; set; }
+    public int? AiGrammaticalRangeScore { get; set; }
+    public string? AiGrammaticalRangeFeedback { get; set; }
+    public string? AiGeneralFeedback { get; set; }
+    
     public string? Status { get; set; }
 }

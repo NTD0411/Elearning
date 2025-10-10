@@ -60,6 +60,7 @@ builder.Services.AddScoped<IListeningExamRepository, ListeningExamRepository>();
 builder.Services.AddScoped<ISpeakingExamRepository, SpeakingExamRepository>();
 builder.Services.AddScoped<IWritingExamRepository, WritingExamRepository>();
 builder.Services.AddScoped<IMailService, MailService>();
+builder.Services.AddScoped<WebRtcApi.Services.AIWritingScoringService>();
 builder.Services.AddMemoryCache();
 
 // Register services here...
