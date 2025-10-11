@@ -27,10 +27,7 @@ const config: Config = {
       spacing: {
         '75%': '75%',
       },
-      backgroundImage: {
-        'newsletter-bg': `url('/images/newsletter/bgFile.png')`,
-        'newsletter-bg-2': `url('/E-learning/images/newsletter/bgFile.png')`,
-      },
+      backgroundImage: {},
     },
   },
   plugins: [],

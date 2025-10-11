@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { headerData } from "../Header/Navigation/menuData";
+import { getHeaderData } from "../Header/Navigation/menuData";
 import { HeaderItem } from "@/types/menu";
 import Logo from "./Logo";
 import Image from "next/image";
@@ -24,7 +24,7 @@ const Header: React.FC = () => {
   const { data: session, status } = useSession();
   const isAuthenticated = !!session;
   const isProfilePage = pathUrl === "/profile";
-  const menuItems = headerData;
+  const menuItems = getHeaderData(session?.user?.role);
 
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [sticky, setSticky] = useState(false);

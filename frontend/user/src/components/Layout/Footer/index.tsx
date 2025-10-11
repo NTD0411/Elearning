@@ -4,13 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import Logo from "../Header/Logo";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { headerData } from "../Header/Navigation/menuData";
+import { getHeaderData } from "../Header/Navigation/menuData";
 import { HeaderItem } from "@/types/menu";
 import { useSession } from "next-auth/react";
 
 const Footer = () => {
   const { data: session } = useSession();
-  const menuItems = headerData;
+  const menuItems = getHeaderData(session?.user?.role);
 
   return (
     <footer className="bg-deepSlate py-10">

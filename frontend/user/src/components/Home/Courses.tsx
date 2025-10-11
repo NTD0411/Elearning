@@ -114,50 +114,48 @@ const Courses = () => {
   }
 
   return (
-    <section className="pt-[120px] pb-[90px]">
-      <div className="container">
+    <div>
+      {/* Search and Filter Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Search Box */}
-        <div className="max-w-3xl mx-auto mb-8">
-          <div className="relative rounded-full">
+        <div className="max-w-3xl mx-auto">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            </div>
             <input
               type="text"
-              placeholder="Search courses..."
+              placeholder="Search for courses..."
               value={searchQuery}
               onChange={(e) => {
                 const value = e.target.value;
-                console.log('Search input changed:', value);
                 setSearchQuery(value);
               }}
-              className="py-6 lg:py-8 pl-8 pr-20 text-lg w-full text-black rounded-full focus:outline-none shadow-[0_0_30px_rgba(0,0,0,0.06)]"
+              className="block w-full pl-14 pr-12 py-5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 shadow-sm text-lg"
             />
-            <button 
-              className="bg-primary p-5 rounded-full absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:bg-primary/90 transition-colors"
-            >
-              <MagnifyingGlassIcon className="w-6 h-6" />
-            </button>
           </div>
         </div>
 
         {/* Course Type Filter */}
-        <div className="flex justify-center mb-8 space-x-4">
+        <div className="flex flex-wrap justify-center gap-3 mt-8 mb-12">
           <button
             onClick={() => setSelectedType("all")}
-            className={`px-4 py-2 rounded-lg ${
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 ${
               selectedType === "all"
-                ? "bg-primary text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-primary text-white shadow-lg shadow-primary/30"
+                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
             }`}
           >
-            All ({courses.length})
+            All Courses ({courses.length})
           </button>
           {Object.keys(groupedCourses).map((type) => (
             <button
               key={type}
               onClick={() => setSelectedType(type)}
-              className={`px-4 py-2 rounded-lg capitalize ${
+              className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 capitalize ${
                 selectedType === type
-                  ? "bg-primary text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-primary text-white shadow-lg shadow-primary/30"
+                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
               }`}
             >
               {type} ({groupedCourses[type].length})
@@ -166,39 +164,50 @@ const Courses = () => {
         </div>
 
         {/* Course Grid */}
-        <div className="flex flex-wrap -mx-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredCourses.map((course) => (
-            <div key={course.examCourseId} className="w-full md:w-1/2 lg:w-1/3 px-4">
-              <div className="mb-10 group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="p-2 bg-primary/[.08] rounded-lg text-primary">
+            <Link key={course.examCourseId} href={`/courses/${course.examCourseId}`}>
+              <div className="h-full bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-primary/20">
+                <div className="flex items-start space-x-4">
+                  <div className="p-3 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl text-primary transform group-hover:scale-110 transition-transform duration-300">
                     {getSkillIcon(course.examType)}
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg text-dark group-hover:text-primary">
-                      <Link href={`/courses/${course.examCourseId}`}>
-                        {course.courseTitle}
-                      </Link>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-xl text-gray-900 group-hover:text-primary truncate">
+                      {course.courseTitle}
                     </h3>
-                    <p className="text-sm text-gray-500">
-                      Course Code: {course.courseCode}
+                    <p className="text-sm text-gray-500 mt-1">
+                      Code: {course.courseCode}
                     </p>
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="bg-primary/[.08] rounded-lg py-1 px-3 text-sm font-medium text-primary">
-                    {course.examType}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    Created: {new Date(course.createdAt).toLocaleDateString()}
-                  </span>
+                
+                <div className="mt-6 pt-6 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center px-4 py-2 rounded-lg bg-primary/[.08] text-primary text-sm font-medium">
+                      {getSkillIcon(course.examType)}
+                      <span className="ml-2">{course.examType}</span>
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {new Date(course.createdAt).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                  <div className="mt-4 flex items-center text-sm text-gray-500 space-x-4">
+                    <span>{course.totalExamSets} Practice Sets</span>
+                    <span>•</span>
+                    <span>Updated Recently</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
