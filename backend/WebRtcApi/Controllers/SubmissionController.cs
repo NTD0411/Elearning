@@ -267,6 +267,8 @@ public class SubmissionController : ControllerBase
                 .Where(s => (s.ExamType != null && (s.ExamType.ToLower() == "writing" || s.ExamType.ToLower() == "speaking")))
                 .Include(s => s.User)
                 .Include(s => s.ExamCourse)
+                .Include(s => s.Feedbacks)
+                    .ThenInclude(f => f.FeedbackReplies)
                 .OrderByDescending(s => s.SubmittedAt)
                 .ToListAsync();
 
@@ -292,7 +294,8 @@ public class SubmissionController : ControllerBase
                     Status = submission.Status,
                     CourseTitle = submission.ExamCourse?.CourseTitle,
                     CourseCode = submission.ExamCourse?.CourseCode,
-                    StudentName = submission.User?.FullName ?? "Unknown Student"
+                    StudentName = submission.User?.FullName ?? "Unknown Student",
+                    ReplyCount = submission.Feedbacks.SelectMany(f => f.FeedbackReplies).Count()
                 };
 
                 // Get exam title based on exam type
@@ -327,6 +330,8 @@ public class SubmissionController : ControllerBase
     {
         try
         {
+            Console.WriteLine($"Grading submission {id} with mentor ID: {gradeDto.MentorId}");
+            
             var submission = await _context.Submissions
                 .Include(s => s.Feedbacks)
                 .FirstOrDefaultAsync(s => s.SubmissionId == id);
@@ -336,23 +341,32 @@ public class SubmissionController : ControllerBase
                 return NotFound();
             }
 
-            // Check if submission already has feedback from another mentor
-            if (submission.Feedbacks.Any() && submission.Feedbacks.First().MentorId != gradeDto.MentorId)
-            {
-                return BadRequest("This submission has already been graded by another mentor");
-            }
-
             submission.MentorScore = gradeDto.MentorScore;
             submission.Status = gradeDto.Status;
 
-            // Create new feedback
-            var feedback = new Feedback
+            // Check if feedback already exists for this submission
+            var existingFeedback = await _context.Feedbacks
+                .FirstOrDefaultAsync(f => f.SubmissionId == id);
+
+            if (existingFeedback != null)
             {
-                SubmissionId = id,
-                FeedbackText = gradeDto.FeedbackContent,
-                CreatedAt = DateTime.UtcNow
-            };
-            _context.Feedbacks.Add(feedback);
+                // Update existing feedback
+                existingFeedback.MentorId = gradeDto.MentorId;
+                existingFeedback.FeedbackText = gradeDto.FeedbackContent;
+                existingFeedback.CreatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                // Create new feedback
+                var feedback = new Feedback
+                {
+                    SubmissionId = id,
+                    MentorId = gradeDto.MentorId,
+                    FeedbackText = gradeDto.FeedbackContent,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.Feedbacks.Add(feedback);
+            }
 
             await _context.SaveChangesAsync();
             return Ok();
@@ -633,6 +647,79 @@ public class SubmissionController : ControllerBase
                 success = false,
                 error = ex.Message
             });
+        }
+    }
+
+    [HttpGet("feedback/{submissionId}")]
+    public async Task<ActionResult<FeedbackDto>> GetSubmissionFeedback(int submissionId)
+    {
+        try
+        {
+            var feedback = await _context.Feedbacks
+                .Include(f => f.Mentor)
+                .Include(f => f.FeedbackReplies)
+                    .ThenInclude(r => r.User)
+                .FirstOrDefaultAsync(f => f.SubmissionId == submissionId);
+
+            if (feedback == null)
+            {
+                return NotFound("No feedback found for this submission");
+            }
+
+            var feedbackDto = new FeedbackDto
+            {
+                FeedbackId = feedback.FeedbackId,
+                SubmissionId = feedback.SubmissionId ?? 0,
+                MentorId = feedback.MentorId,
+                MentorName = feedback.Mentor?.FullName,
+                FeedbackText = feedback.FeedbackText,
+                CreatedAt = feedback.CreatedAt,
+                Replies = feedback.FeedbackReplies.Select(r => new FeedbackReplyDto
+                {
+                    ReplyId = r.ReplyId,
+                    FeedbackId = r.FeedbackId ?? 0,
+                    UserId = r.UserId ?? 0,
+                    UserName = r.User?.FullName,
+                    ReplyText = r.ReplyText,
+                    CreatedAt = r.CreatedAt
+                }).ToList()
+            };
+
+            return Ok(feedbackDto);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error fetching feedback: {ex.Message}");
+        }
+    }
+
+    [HttpPost("feedback/reply")]
+    public async Task<ActionResult> CreateFeedbackReply(CreateFeedbackReplyDto replyDto)
+    {
+        try
+        {
+            var feedback = await _context.Feedbacks.FindAsync(replyDto.FeedbackId);
+            if (feedback == null)
+            {
+                return NotFound("Feedback not found");
+            }
+
+            var reply = new FeedbackReply
+            {
+                FeedbackId = replyDto.FeedbackId,
+                UserId = replyDto.UserId,
+                ReplyText = replyDto.ReplyText,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.FeedbackReplies.Add(reply);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Reply created successfully" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error creating reply: {ex.Message}");
         }
     }
 

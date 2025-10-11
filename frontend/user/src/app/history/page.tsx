@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import FeedbackView from '@/components/Feedback/FeedbackView';
 
 interface SubmissionHistory {
   submissionId: number;
@@ -43,6 +44,8 @@ export default function ExamHistoryPage() {
   const [selectedExamType, setSelectedExamType] = useState<string>('all');
   const [selectedSubmission, setSelectedSubmission] = useState<SubmissionHistory | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [selectedSubmissionForFeedback, setSelectedSubmissionForFeedback] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -119,6 +122,16 @@ export default function ExamHistoryPage() {
   const closeModal = () => {
     setShowModal(false);
     setSelectedSubmission(null);
+  };
+
+  const handleViewFeedback = (submissionId: number) => {
+    setSelectedSubmissionForFeedback(submissionId);
+    setShowFeedbackModal(true);
+  };
+
+  const closeFeedbackModal = () => {
+    setShowFeedbackModal(false);
+    setSelectedSubmissionForFeedback(null);
   };
 
   // Handle escape key to close modal
@@ -364,12 +377,22 @@ export default function ExamHistoryPage() {
                           </div>
                         )}
                       </div>
-                      <button
-                        onClick={() => handleViewDetails(submission)}
-                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
-                      >
-                        View Details
-                      </button>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleViewDetails(submission)}
+                          className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                          View Details
+                        </button>
+                        {submission.mentorScore && (
+                          <button
+                            onClick={() => handleViewFeedback(submission.submissionId)}
+                            className="inline-flex items-center px-3 py-1.5 border border-blue-300 shadow-sm text-xs font-medium rounded text-blue-700 bg-blue-50 hover:bg-blue-100"
+                          >
+                            View Feedback
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </li>
@@ -712,6 +735,14 @@ export default function ExamHistoryPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Feedback Modal */}
+      {showFeedbackModal && selectedSubmissionForFeedback && (
+        <FeedbackView
+          submissionId={selectedSubmissionForFeedback}
+          onClose={closeFeedbackModal}
+        />
       )}
     </div>
   );

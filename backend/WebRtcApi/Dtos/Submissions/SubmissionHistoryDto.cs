@@ -23,6 +23,9 @@ public class SubmissionHistoryDto
     public string? CourseTitle { get; set; }
     public string? CourseCode { get; set; }
     
+    // Discussion info
+    public int ReplyCount { get; set; }
+    
     // Formatted properties
     public string TimeSpentFormatted => TimeSpent.HasValue 
         ? TimeSpan.FromSeconds(TimeSpent.Value).ToString(@"hh\:mm\:ss") 
