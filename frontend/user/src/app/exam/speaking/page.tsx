@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 interface SpeakingQuestion {
   speakingExamId: number;
@@ -22,6 +23,7 @@ interface ExamSet {
 export default function SpeakingExam() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const examSetId = searchParams.get('examSetId');
   const courseId = searchParams.get('courseId');
   
@@ -295,11 +297,12 @@ export default function SpeakingExam() {
   const submitExam = async () => {
     try {
       const formData = new FormData();
-      formData.append('userId', '1'); // Replace with actual user ID
-      formData.append('examSetId', examSetId || '2');
+      formData.append('userId', session?.user?.id?.toString() || '1'); // Use actual user ID from session
+      formData.append('examSetId', examSetId || '1'); // Use correct examSetId
 
       console.log('Submitting exam with recordings:', recordings);
       console.log('Number of recordings:', Object.keys(recordings).length);
+      console.log('User ID:', session?.user?.id);
 
       // Add all audio recordings
       Object.entries(recordings).forEach(([questionIndex, audioBlob]) => {

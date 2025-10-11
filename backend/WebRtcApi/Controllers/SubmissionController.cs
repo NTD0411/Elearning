@@ -367,6 +367,19 @@ public class SubmissionController : ControllerBase
     {
         try
         {
+            _logger.LogInformation("Creating speaking submission for UserId: {UserId}, ExamSetId: {ExamSetId}", 
+                speakingDto.UserId, speakingDto.ExamSetId);
+
+            // Check if user exists
+            var user = await _context.Users.FindAsync(speakingDto.UserId);
+            if (user == null)
+            {
+                _logger.LogWarning("User with ID {UserId} not found", speakingDto.UserId);
+                return BadRequest($"User with ID {speakingDto.UserId} not found");
+            }
+
+            _logger.LogInformation("User found: {UserName} with role: {Role}", user.FullName, user.Role);
+
             var submission = new Submission
             {
                 UserId = speakingDto.UserId,
@@ -381,6 +394,8 @@ public class SubmissionController : ControllerBase
             _context.Submissions.Add(submission);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("Submission created with ID: {SubmissionId}", submission.SubmissionId);
+
             // Save audio files
             var audioFiles = new List<string>();
             var uploadsDir = Path.Combine(_environment.WebRootPath, "uploads", "speaking");
@@ -389,6 +404,8 @@ public class SubmissionController : ControllerBase
             {
                 Directory.CreateDirectory(uploadsDir);
             }
+
+            _logger.LogInformation("Processing {Count} audio files", speakingDto.AudioFiles.Count);
 
             foreach (var file in speakingDto.AudioFiles)
             {
@@ -403,12 +420,15 @@ public class SubmissionController : ControllerBase
                     }
                     
                     audioFiles.Add($"/uploads/speaking/{fileName}");
+                    _logger.LogInformation("Saved audio file: {FileName}", fileName);
                 }
             }
 
             // Update submission with audio file paths
             submission.Answers = string.Join(";", audioFiles);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Speaking submission completed successfully. SubmissionId: {SubmissionId}", submission.SubmissionId);
 
             var submissionDto = new SubmissionDto
             {
@@ -426,6 +446,7 @@ public class SubmissionController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error creating speaking submission for UserId: {UserId}", speakingDto.UserId);
             return BadRequest($"Error creating speaking submission: {ex.Message}");
         }
     }
