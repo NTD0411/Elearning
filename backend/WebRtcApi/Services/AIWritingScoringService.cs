@@ -25,6 +25,10 @@ namespace WebRtcApi.Services
         {
             try
             {
+                _logger.LogInformation("Starting AI scoring for writing type: {WritingType}", writingType);
+                _logger.LogInformation("Prompt length: {PromptLength}, Response length: {ResponseLength}", 
+                    prompt?.Length ?? 0, studentResponse?.Length ?? 0);
+
                 var systemPrompt = GetSystemPrompt(writingType);
                 var userPrompt = GetUserPrompt(prompt, studentResponse);
 
@@ -34,6 +38,7 @@ namespace WebRtcApi.Services
                     new UserChatMessage(userPrompt)
                 };
 
+                _logger.LogInformation("Sending request to OpenAI API...");
                 var chatCompletion = await _openAIClient.GetChatClient("gpt-4o-mini")
                     .CompleteChatAsync(chatMessages, new ChatCompletionOptions
                     {
@@ -42,14 +47,32 @@ namespace WebRtcApi.Services
                     });
 
                 var response = chatCompletion.Value.Content[0].Text;
-                _logger.LogInformation("AI Response: {Response}", response);
+                _logger.LogInformation("AI Response received: {Response}", response);
 
-                return ParseScoringResponse(response);
+                var result = ParseScoringResponse(response);
+                _logger.LogInformation("AI scoring completed. Overall band: {Band}", result.OverallBand);
+                
+                return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while scoring writing");
-                throw;
+                _logger.LogError(ex, "Error occurred while scoring writing. Prompt: {Prompt}, Response: {Response}", 
+                    prompt, studentResponse);
+                
+                // Return fallback scoring if OpenAI API fails
+                return new WritingScoreResult
+                {
+                    OverallBand = 5.0m,
+                    TaskAchievementScore = 5,
+                    TaskAchievementFeedback = "AI scoring unavailable. Manual review required.",
+                    CoherenceCohesionScore = 5,
+                    CoherenceCohesionFeedback = "AI scoring unavailable. Manual review required.",
+                    LexicalResourceScore = 5,
+                    LexicalResourceFeedback = "AI scoring unavailable. Manual review required.",
+                    GrammaticalRangeScore = 5,
+                    GrammaticalRangeFeedback = "AI scoring unavailable. Manual review required.",
+                    GeneralFeedback = "AI scoring service is currently unavailable. Your submission has been saved and will be reviewed manually by our instructors."
+                };
             }
         }
 

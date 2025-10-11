@@ -11,134 +11,183 @@ namespace WebRtcApi.Controllers
     public class ExamCourseController : ControllerBase
     {
         private readonly DatabaseContext _context;
+        private readonly ILogger<ExamCourseController> _logger;
 
-        public ExamCourseController(DatabaseContext context)
+        public ExamCourseController(DatabaseContext context, ILogger<ExamCourseController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: api/ExamCourse
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ExamCourseDto>>> GetExamCourses()
         {
-            var examCourses = await _context.ExamCourse
-                .Select(ec => new ExamCourseDto
+            try
+            {
+                _logger.LogInformation("Fetching all exam courses");
+                
+                if (_context.ExamCourse == null)
                 {
-                    ExamCourseId = ec.ExamCourseId,
-                    CourseTitle = ec.CourseTitle,
-                    CourseCode = ec.CourseCode,
-                    Description = ec.Description,
-                    ExamType = ec.ExamType,
-                    CreatedAt = ec.CreatedAt,
-                    ReadingExamSetsCount = _context.ExamCourseExamSets.Count(eces => eces.ExamCourseId == ec.ExamCourseId && eces.ExamSetType == "reading"),
-                    ListeningExamSetsCount = _context.ExamCourseExamSets.Count(eces => eces.ExamCourseId == ec.ExamCourseId && eces.ExamSetType == "listening"),
-                    SpeakingExamSetsCount = _context.ExamCourseExamSets.Count(eces => eces.ExamCourseId == ec.ExamCourseId && eces.ExamSetType == "speaking"),
-                    WritingExamSetsCount = _context.ExamCourseExamSets.Count(eces => eces.ExamCourseId == ec.ExamCourseId && eces.ExamSetType == "writing"),
-                    TotalExamSets = _context.ExamCourseExamSets.Count(eces => eces.ExamCourseId == ec.ExamCourseId)
-                })
-                .ToListAsync();
+                    _logger.LogError("ExamCourse DbSet is null");
+                    return StatusCode(500, "Database configuration error");
+                }
 
-            return Ok(examCourses);
+                var examCourses = await _context.ExamCourse
+                    .Select(ec => new ExamCourseDto
+                    {
+                        ExamCourseId = ec.ExamCourseId,
+                        CourseTitle = ec.CourseTitle,
+                        CourseCode = ec.CourseCode,
+                        Description = ec.Description,
+                        ExamType = ec.ExamType,
+                        CreatedAt = ec.CreatedAt,
+                        ReadingExamSetsCount = _context.ExamCourseExamSets.Count(eces => eces.ExamCourseId == ec.ExamCourseId && eces.ExamSetType == "reading"),
+                        ListeningExamSetsCount = _context.ExamCourseExamSets.Count(eces => eces.ExamCourseId == ec.ExamCourseId && eces.ExamSetType == "listening"),
+                        SpeakingExamSetsCount = _context.ExamCourseExamSets.Count(eces => eces.ExamCourseId == ec.ExamCourseId && eces.ExamSetType == "speaking"),
+                        WritingExamSetsCount = _context.ExamCourseExamSets.Count(eces => eces.ExamCourseId == ec.ExamCourseId && eces.ExamSetType == "writing"),
+                        TotalExamSets = _context.ExamCourseExamSets.Count(eces => eces.ExamCourseId == ec.ExamCourseId)
+                    })
+                    .ToListAsync();
+
+                _logger.LogInformation($"Successfully fetched {examCourses.Count} exam courses");
+                return Ok(examCourses);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching exam courses");
+                return StatusCode(500, new { message = "Internal server error while fetching exam courses", error = ex.Message });
+            }
         }
 
         // GET: api/ExamCourse/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<ExamCourseDetailDto>> GetExamCourse(int id)
         {
-            var examCourse = await _context.ExamCourse
-                .Where(ec => ec.ExamCourseId == id)
-                .FirstOrDefaultAsync();
-
-            if (examCourse == null)
-                return NotFound();
-
-            // Get exam sets based on type through junction table
-            var examSets = await GetExamSetsForCourse(id, examCourse.ExamType);
-
-            var result = new ExamCourseDetailDto
+            try
             {
-                ExamCourseId = examCourse.ExamCourseId,
-                CourseTitle = examCourse.CourseTitle,
-                CourseCode = examCourse.CourseCode,
-                Description = examCourse.Description,
-                ExamType = examCourse.ExamType,
-                CreatedAt = examCourse.CreatedAt,
-                ReadingExamSets = examCourse.ExamType.ToLower() == "reading" ? examSets : new List<ExamSetSummaryDto>(),
-                ListeningExamSets = examCourse.ExamType.ToLower() == "listening" ? examSets : new List<ExamSetSummaryDto>(),
-                SpeakingExamSets = examCourse.ExamType.ToLower() == "speaking" ? examSets : new List<ExamSetSummaryDto>(),
-                WritingExamSets = examCourse.ExamType.ToLower() == "writing" ? examSets : new List<ExamSetSummaryDto>()
-            };
+                _logger.LogInformation($"Fetching exam course with id: {id}");
 
-            return Ok(result);
+                if (_context.ExamCourse == null)
+                {
+                    _logger.LogError("ExamCourse DbSet is null");
+                    return StatusCode(500, "Database configuration error");
+                }
+
+                var examCourse = await _context.ExamCourse
+                    .Where(ec => ec.ExamCourseId == id)
+                    .FirstOrDefaultAsync();
+
+                if (examCourse == null)
+                {
+                    _logger.LogWarning($"Exam course with id {id} not found");
+                    return NotFound($"Exam course with ID {id} not found");
+                }
+
+                var examSets = await GetExamSetsForCourse(id, examCourse.ExamType);
+
+                var result = new ExamCourseDetailDto
+                {
+                    ExamCourseId = examCourse.ExamCourseId,
+                    CourseTitle = examCourse.CourseTitle,
+                    CourseCode = examCourse.CourseCode,
+                    Description = examCourse.Description,
+                    ExamType = examCourse.ExamType,
+                    CreatedAt = examCourse.CreatedAt,
+                    ReadingExamSets = examCourse.ExamType.ToLower() == "reading" ? examSets : new List<ExamSetSummaryDto>(),
+                    ListeningExamSets = examCourse.ExamType.ToLower() == "listening" ? examSets : new List<ExamSetSummaryDto>(),
+                    SpeakingExamSets = examCourse.ExamType.ToLower() == "speaking" ? examSets : new List<ExamSetSummaryDto>(),
+                    WritingExamSets = examCourse.ExamType.ToLower() == "writing" ? examSets : new List<ExamSetSummaryDto>()
+                };
+
+                _logger.LogInformation($"Successfully fetched exam course with id: {id}");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching exam course with id: {id}");
+                return StatusCode(500, new { message = "Internal server error while fetching exam course", error = ex.Message });
+            }
         }
 
         private async Task<List<ExamSetSummaryDto>> GetExamSetsForCourse(int examCourseId, string examType)
         {
-            var examSetIds = await _context.ExamCourseExamSets
-                .Where(eces => eces.ExamCourseId == examCourseId && eces.ExamSetType == examType.ToLower())
-                .Select(eces => eces.ExamSetId)
-                .ToListAsync();
-
-            switch (examType.ToLower())
+            try
             {
-                case "reading":
-                    return await _context.ReadingExamSets
-                        .Where(r => examSetIds.Contains(r.ExamSetId))
-                        .Select(r => new ExamSetSummaryDto
-                        {
-                            ExamSetId = r.ExamSetId,
-                            ExamSetTitle = r.ExamSetTitle,
-                            ExamSetCode = r.ExamSetCode,
-                            TotalQuestions = r.TotalQuestions,
-                            QuestionCount = _context.ReadingExams.Count(e => e.ExamSetId == r.ExamSetId),
-                            Type = "Reading"
-                        })
-                        .ToListAsync();
+                _logger.LogInformation($"Fetching exam sets for course {examCourseId} of type {examType}");
 
-                case "listening":
-                    return await _context.ListeningExamSets
-                        .Where(l => examSetIds.Contains(l.ExamSetId))
-                        .Select(l => new ExamSetSummaryDto
-                        {
-                            ExamSetId = l.ExamSetId,
-                            ExamSetTitle = l.ExamSetTitle,
-                            ExamSetCode = l.ExamSetCode,
-                            TotalQuestions = l.TotalQuestions,
-                            QuestionCount = _context.ListeningExams.Count(e => e.ExamSetId == l.ExamSetId),
-                            Type = "Listening"
-                        })
-                        .ToListAsync();
+                var examSetIds = await _context.ExamCourseExamSets
+                    .Where(eces => eces.ExamCourseId == examCourseId && eces.ExamSetType == examType.ToLower())
+                    .Select(eces => eces.ExamSetId)
+                    .ToListAsync();
 
-                case "speaking":
-                    return await _context.SpeakingExamSets
-                        .Where(s => examSetIds.Contains(s.ExamSetId))
-                        .Select(s => new ExamSetSummaryDto
-                        {
-                            ExamSetId = s.ExamSetId,
-                            ExamSetTitle = s.ExamSetTitle,
-                            ExamSetCode = s.ExamSetCode,
-                            TotalQuestions = s.TotalQuestions,
-                            QuestionCount = _context.SpeakingExams.Count(e => e.ExamSetId == s.ExamSetId),
-                            Type = "Speaking"
-                        })
-                        .ToListAsync();
+                switch (examType.ToLower())
+                {
+                    case "reading":
+                        return await _context.ReadingExamSets
+                            .Where(r => examSetIds.Contains(r.ExamSetId))
+                            .Select(r => new ExamSetSummaryDto
+                            {
+                                ExamSetId = r.ExamSetId,
+                                ExamSetTitle = r.ExamSetTitle,
+                                ExamSetCode = r.ExamSetCode,
+                                TotalQuestions = r.TotalQuestions,
+                                QuestionCount = _context.ReadingExams.Count(e => e.ExamSetId == r.ExamSetId),
+                                Type = "Reading"
+                            })
+                            .ToListAsync();
 
-                case "writing":
-                    return await _context.WritingExamSets
-                        .Where(w => examSetIds.Contains(w.ExamSetId))
-                        .Select(w => new ExamSetSummaryDto
-                        {
-                            ExamSetId = w.ExamSetId,
-                            ExamSetTitle = w.ExamSetTitle,
-                            ExamSetCode = w.ExamSetCode,
-                            TotalQuestions = w.TotalQuestions,
-                            QuestionCount = _context.WritingExams.Count(e => e.ExamSetId == w.ExamSetId),
-                            Type = "Writing"
-                        })
-                        .ToListAsync();
+                    case "listening":
+                        return await _context.ListeningExamSets
+                            .Where(l => examSetIds.Contains(l.ExamSetId))
+                            .Select(l => new ExamSetSummaryDto
+                            {
+                                ExamSetId = l.ExamSetId,
+                                ExamSetTitle = l.ExamSetTitle,
+                                ExamSetCode = l.ExamSetCode,
+                                TotalQuestions = l.TotalQuestions,
+                                QuestionCount = _context.ListeningExams.Count(e => e.ExamSetId == l.ExamSetId),
+                                Type = "Listening"
+                            })
+                            .ToListAsync();
 
-                default:
-                    return new List<ExamSetSummaryDto>();
+                    case "speaking":
+                        return await _context.SpeakingExamSets
+                            .Where(s => examSetIds.Contains(s.ExamSetId))
+                            .Select(s => new ExamSetSummaryDto
+                            {
+                                ExamSetId = s.ExamSetId,
+                                ExamSetTitle = s.ExamSetTitle,
+                                ExamSetCode = s.ExamSetCode,
+                                TotalQuestions = s.TotalQuestions,
+                                QuestionCount = _context.SpeakingExams.Count(e => e.ExamSetId == s.ExamSetId),
+                                Type = "Speaking"
+                            })
+                            .ToListAsync();
+
+                    case "writing":
+                        return await _context.WritingExamSets
+                            .Where(w => examSetIds.Contains(w.ExamSetId))
+                            .Select(w => new ExamSetSummaryDto
+                            {
+                                ExamSetId = w.ExamSetId,
+                                ExamSetTitle = w.ExamSetTitle,
+                                ExamSetCode = w.ExamSetCode,
+                                TotalQuestions = w.TotalQuestions,
+                                QuestionCount = _context.WritingExams.Count(e => e.ExamSetId == w.ExamSetId),
+                                Type = "Writing"
+                            })
+                            .ToListAsync();
+
+                    default:
+                        _logger.LogWarning($"Invalid exam type: {examType}");
+                        return new List<ExamSetSummaryDto>();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching exam sets for course {examCourseId} of type {examType}");
+                throw;
             }
         }
 
@@ -146,54 +195,74 @@ namespace WebRtcApi.Controllers
         [HttpPost]
         public async Task<ActionResult<ExamCourseDto>> CreateExamCourse([FromBody] CreateExamCourseDto request)
         {
-            var examCourse = new ExamCourse
+            try
             {
-                CourseTitle = request.CourseTitle,
-                CourseCode = request.CourseCode ?? $"EC_{DateTime.Now:yyyyMMddHHmmss}",
-                Description = request.Description ?? "",
-                ExamType = request.ExamType,
-                CreatedAt = DateTime.Now
-            };
+                var examCourse = new ExamCourse
+                {
+                    CourseTitle = request.CourseTitle,
+                    CourseCode = request.CourseCode ?? $"EC_{DateTime.Now:yyyyMMddHHmmss}",
+                    Description = request.Description ?? "",
+                    ExamType = request.ExamType,
+                    CreatedAt = DateTime.Now
+                };
 
-            _context.ExamCourse.Add(examCourse);
-            await _context.SaveChangesAsync();
+                _context.ExamCourse.Add(examCourse);
+                await _context.SaveChangesAsync();
 
-            // Assign exam sets to the course
-            await AssignExamSetsToExamCourse(examCourse.ExamCourseId, request.ExamSetIds, request.ExamType);
+                // Assign exam sets to the course
+                await AssignExamSetsToExamCourse(examCourse.ExamCourseId, request.ExamSetIds, request.ExamType);
 
-            // Return DTO instead of entity to avoid reference loops
-            var result = new
+                // Return DTO instead of entity to avoid reference loops
+                var result = new
+                {
+                    examCourse.ExamCourseId,
+                    examCourse.CourseTitle,
+                    examCourse.CourseCode,
+                    examCourse.Description,
+                    examCourse.ExamType,
+                    examCourse.CreatedAt,
+                    ExamSetCount = request.ExamSetIds.Count
+                };
+
+                return CreatedAtAction(nameof(GetExamCourse), new { id = examCourse.ExamCourseId }, result);
+            }
+            catch (Exception ex)
             {
-                examCourse.ExamCourseId,
-                examCourse.CourseTitle,
-                examCourse.CourseCode,
-                examCourse.Description,
-                examCourse.ExamType,
-                examCourse.CreatedAt,
-                ExamSetCount = request.ExamSetIds.Count
-            };
-
-            return CreatedAtAction(nameof(GetExamCourse), new { id = examCourse.ExamCourseId }, result);
+                _logger.LogError(ex, "Error creating exam course");
+                return StatusCode(500, new { message = "Internal server error while creating exam course", error = ex.Message });
+            }
         }
 
         // PUT: api/ExamCourse/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateExamCourse(int id, [FromBody] UpdateExamCourseDto request)
         {
-            var examCourse = await _context.ExamCourse.FindAsync(id);
-            if (examCourse == null)
-                return NotFound();
+            try
+            {
+                var examCourse = await _context.ExamCourse.FindAsync(id);
+                if (examCourse == null)
+                {
+                    _logger.LogWarning($"Exam course with id {id} not found");
+                    return NotFound($"Exam course with ID {id} not found");
+                }
 
-            examCourse.CourseTitle = request.CourseTitle;
-            examCourse.Description = request.Description;
+                examCourse.CourseTitle = request.CourseTitle;
+                examCourse.Description = request.Description;
 
-            // Update exam sets assignment
-            await RemoveExamSetsFromExamCourse(id, examCourse.ExamType);
-            await AssignExamSetsToExamCourse(id, request.ExamSetIds, examCourse.ExamType);
+                // Update exam sets assignment
+                await RemoveExamSetsFromExamCourse(id, examCourse.ExamType);
+                await AssignExamSetsToExamCourse(id, request.ExamSetIds, examCourse.ExamType);
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            return NoContent();
+                _logger.LogInformation($"Successfully updated exam course with id: {id}");
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating exam course with id: {id}");
+                return StatusCode(500, new { message = "Internal server error while updating exam course", error = ex.Message });
+            }
         }
 
         // DELETE: api/ExamCourse/{id}
@@ -204,6 +273,8 @@ namespace WebRtcApi.Controllers
             {
                 var examCourse = await _context.ExamCourse.FindAsync(id);
                 if (examCourse == null)
+                {
+                    _logger.LogWarning($"Exam course with id {id} not found");
                     return NotFound(new DeleteResultDto
                     {
                         Success = false,
@@ -211,6 +282,7 @@ namespace WebRtcApi.Controllers
                         DeletedExamCourseId = id,
                         DeletedAt = DateTime.Now
                     });
+                }
 
                 // Remove submissions first (if any)
                 var submissions = await _context.Submissions
@@ -221,7 +293,7 @@ namespace WebRtcApi.Controllers
                 if (submissions.Any())
                 {
                     _context.Submissions.RemoveRange(submissions);
-                    Console.WriteLine($"Removing {submissionsCount} submissions for exam course {id}");
+                    _logger.LogInformation($"Removing {submissionsCount} submissions for exam course {id}");
                 }
 
                 // Remove all exam sets assignments
@@ -233,7 +305,7 @@ namespace WebRtcApi.Controllers
                 if (assignments.Any())
                 {
                     _context.ExamCourseExamSets.RemoveRange(assignments);
-                    Console.WriteLine($"Removing {assignmentsCount} exam set assignments for exam course {id}");
+                    _logger.LogInformation($"Removing {assignmentsCount} exam set assignments for exam course {id}");
                 }
 
                 // Finally remove the exam course
@@ -241,7 +313,7 @@ namespace WebRtcApi.Controllers
                 
                 // Save all changes
                 await _context.SaveChangesAsync();
-                Console.WriteLine($"Successfully deleted exam course {id}. Reason: {deleteRequest?.Reason ?? "No reason provided"}");
+                _logger.LogInformation($"Successfully deleted exam course {id}. Reason: {deleteRequest?.Reason ?? "No reason provided"}");
 
                 return Ok(new DeleteResultDto
                 {
@@ -255,17 +327,8 @@ namespace WebRtcApi.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception details
-                Console.WriteLine($"Error deleting exam course {id}: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                
-                return BadRequest(new DeleteResultDto
-                {
-                    Success = false,
-                    Message = $"Failed to delete exam course: {ex.Message}",
-                    DeletedExamCourseId = id,
-                    DeletedAt = DateTime.Now
-                });
+                _logger.LogError(ex, $"Error deleting exam course with id: {id}");
+                return StatusCode(500, new { message = "Internal server error while deleting exam course", error = ex.Message });
             }
         }
 
@@ -273,104 +336,133 @@ namespace WebRtcApi.Controllers
         [HttpGet("available-examsets/{examType}")]
         public async Task<ActionResult<IEnumerable<ExamSetSummaryDto>>> GetAvailableExamSets(string examType)
         {
-            switch (examType.ToLower())
+            try
             {
-                case "reading":
-                    var readingExamSets = await _context.ReadingExamSets
-                        .Select(r => new ExamSetSummaryDto
-                        {
-                            ExamSetId = r.ExamSetId,
-                            ExamSetTitle = r.ExamSetTitle,
-                            ExamSetCode = r.ExamSetCode,
-                            TotalQuestions = r.TotalQuestions,
-                            QuestionCount = _context.ReadingExams.Count(e => e.ExamSetId == r.ExamSetId),
-                            Type = "Reading"
-                        })
-                        .ToListAsync();
-                    return Ok(readingExamSets);
+                _logger.LogInformation($"Fetching available exam sets for type: {examType}");
 
-                case "listening":
-                    var listeningExamSets = await _context.ListeningExamSets
-                        .Select(l => new ExamSetSummaryDto
-                        {
-                            ExamSetId = l.ExamSetId,
-                            ExamSetTitle = l.ExamSetTitle,
-                            ExamSetCode = l.ExamSetCode,
-                            TotalQuestions = l.TotalQuestions,
-                            QuestionCount = _context.ListeningExams.Count(e => e.ExamSetId == l.ExamSetId),
-                            Type = "Listening"
-                        })
-                        .ToListAsync();
-                    return Ok(listeningExamSets);
+                switch (examType.ToLower())
+                {
+                    case "reading":
+                        var readingExamSets = await _context.ReadingExamSets
+                            .Select(r => new ExamSetSummaryDto
+                            {
+                                ExamSetId = r.ExamSetId,
+                                ExamSetTitle = r.ExamSetTitle,
+                                ExamSetCode = r.ExamSetCode,
+                                TotalQuestions = r.TotalQuestions,
+                                QuestionCount = _context.ReadingExams.Count(e => e.ExamSetId == r.ExamSetId),
+                                Type = "Reading"
+                            })
+                            .ToListAsync();
+                        return Ok(readingExamSets);
 
-                case "speaking":
-                    var speakingExamSets = await _context.SpeakingExamSets
-                        .Select(s => new ExamSetSummaryDto
-                        {
-                            ExamSetId = s.ExamSetId,
-                            ExamSetTitle = s.ExamSetTitle,
-                            ExamSetCode = s.ExamSetCode,
-                            TotalQuestions = s.TotalQuestions,
-                            QuestionCount = _context.SpeakingExams.Count(e => e.ExamSetId == s.ExamSetId),
-                            Type = "Speaking"
-                        })
-                        .ToListAsync();
-                    return Ok(speakingExamSets);
+                    case "listening":
+                        var listeningExamSets = await _context.ListeningExamSets
+                            .Select(l => new ExamSetSummaryDto
+                            {
+                                ExamSetId = l.ExamSetId,
+                                ExamSetTitle = l.ExamSetTitle,
+                                ExamSetCode = l.ExamSetCode,
+                                TotalQuestions = l.TotalQuestions,
+                                QuestionCount = _context.ListeningExams.Count(e => e.ExamSetId == l.ExamSetId),
+                                Type = "Listening"
+                            })
+                            .ToListAsync();
+                        return Ok(listeningExamSets);
 
-                case "writing":
-                    var writingExamSets = await _context.WritingExamSets
-                        .Select(w => new ExamSetSummaryDto
-                        {
-                            ExamSetId = w.ExamSetId,
-                            ExamSetTitle = w.ExamSetTitle,
-                            ExamSetCode = w.ExamSetCode,
-                            TotalQuestions = w.TotalQuestions,
-                            QuestionCount = _context.WritingExams.Count(e => e.ExamSetId == w.ExamSetId),
-                            Type = "Writing"
-                        })
-                        .ToListAsync();
-                    return Ok(writingExamSets);
+                    case "speaking":
+                        var speakingExamSets = await _context.SpeakingExamSets
+                            .Select(s => new ExamSetSummaryDto
+                            {
+                                ExamSetId = s.ExamSetId,
+                                ExamSetTitle = s.ExamSetTitle,
+                                ExamSetCode = s.ExamSetCode,
+                                TotalQuestions = s.TotalQuestions,
+                                QuestionCount = _context.SpeakingExams.Count(e => e.ExamSetId == s.ExamSetId),
+                                Type = "Speaking"
+                            })
+                            .ToListAsync();
+                        return Ok(speakingExamSets);
 
-                default:
-                    return BadRequest("Invalid exam type");
+                    case "writing":
+                        var writingExamSets = await _context.WritingExamSets
+                            .Select(w => new ExamSetSummaryDto
+                            {
+                                ExamSetId = w.ExamSetId,
+                                ExamSetTitle = w.ExamSetTitle,
+                                ExamSetCode = w.ExamSetCode,
+                                TotalQuestions = w.TotalQuestions,
+                                QuestionCount = _context.WritingExams.Count(e => e.ExamSetId == w.ExamSetId),
+                                Type = "Writing"
+                            })
+                            .ToListAsync();
+                        return Ok(writingExamSets);
+
+                    default:
+                        _logger.LogWarning($"Invalid exam type: {examType}");
+                        return BadRequest("Invalid exam type");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching available exam sets for type: {examType}");
+                return StatusCode(500, new { message = "Internal server error while fetching available exam sets", error = ex.Message });
             }
         }
 
         private async Task AssignExamSetsToExamCourse(int examCourseId, List<int> examSetIds, string examType)
         {
-            foreach (var examSetId in examSetIds)
+            try
             {
-                // Check if this assignment already exists
-                var existingAssignment = await _context.ExamCourseExamSets
-                    .FirstOrDefaultAsync(eces => eces.ExamCourseId == examCourseId && 
-                                                eces.ExamSetId == examSetId && 
-                                                eces.ExamSetType == examType);
-
-                if (existingAssignment == null)
+                foreach (var examSetId in examSetIds)
                 {
-                    var assignment = new ExamCourseExamSet
+                    // Check if this assignment already exists
+                    var existingAssignment = await _context.ExamCourseExamSets
+                        .FirstOrDefaultAsync(eces => eces.ExamCourseId == examCourseId && 
+                                                    eces.ExamSetId == examSetId && 
+                                                    eces.ExamSetType == examType);
+
+                    if (existingAssignment == null)
                     {
-                        ExamCourseId = examCourseId,
-                        ExamSetId = examSetId,
-                        ExamSetType = examType,
-                        AssignedAt = DateTime.Now
-                    };
+                        var assignment = new ExamCourseExamSet
+                        {
+                            ExamCourseId = examCourseId,
+                            ExamSetId = examSetId,
+                            ExamSetType = examType,
+                            AssignedAt = DateTime.Now
+                        };
 
-                    _context.ExamCourseExamSets.Add(assignment);
+                        _context.ExamCourseExamSets.Add(assignment);
+                    }
                 }
-            }
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
+                _logger.LogInformation($"Successfully assigned exam sets to course {examCourseId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error assigning exam sets to course {examCourseId}");
+                throw;
+            }
         }
 
         private async Task RemoveExamSetsFromExamCourse(int examCourseId, string examType)
         {
-            var assignments = await _context.ExamCourseExamSets
-                .Where(eces => eces.ExamCourseId == examCourseId && eces.ExamSetType == examType)
-                .ToListAsync();
+            try
+            {
+                var assignments = await _context.ExamCourseExamSets
+                    .Where(eces => eces.ExamCourseId == examCourseId && eces.ExamSetType == examType)
+                    .ToListAsync();
 
-            _context.ExamCourseExamSets.RemoveRange(assignments);
-            await _context.SaveChangesAsync();
+                _context.ExamCourseExamSets.RemoveRange(assignments);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation($"Successfully removed exam sets from course {examCourseId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error removing exam sets from course {examCourseId}");
+                throw;
+            }
         }
     }
 }

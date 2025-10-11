@@ -40,7 +40,7 @@ namespace WebRtcApi.Repositories.Exams
         {
             var speakingExam = new SpeakingExam
             {
-                ExamSetId = createDto.ExamSetId,
+                ExamSetId = createDto.ExamSetId ?? throw new ArgumentNullException(nameof(createDto.ExamSetId)),
                 QuestionText = createDto.QuestionText,
                 PartNumber = createDto.PartNumber,
                 PartTitle = createDto.PartTitle,
@@ -63,7 +63,7 @@ namespace WebRtcApi.Repositories.Exams
                 return null;
 
             if (updateDto.ExamSetId.HasValue)
-                speakingExam.ExamSetId = updateDto.ExamSetId;
+                speakingExam.ExamSetId = updateDto.ExamSetId.Value;
             
             if (!string.IsNullOrEmpty(updateDto.QuestionText))
                 speakingExam.QuestionText = updateDto.QuestionText;

@@ -79,7 +79,7 @@ const DashboardPage = () => {
                 </h2>
                 <div className="space-y-3">
                   <a 
-                    href="/exam/speaking?examSetId=2" 
+                    href="/exam/speaking?examSetId=1" 
                     className="block w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center"
                   >
                     🎤 Speaking Test

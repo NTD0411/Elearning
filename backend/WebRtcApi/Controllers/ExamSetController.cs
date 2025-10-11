@@ -10,10 +10,12 @@ namespace WebRtcApi.Controllers
     public class ExamSetController : ControllerBase
     {
         private readonly DatabaseContext _context;
+        private readonly ILogger<ExamSetController> _logger;
 
-        public ExamSetController(DatabaseContext context)
+        public ExamSetController(DatabaseContext context, ILogger<ExamSetController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: api/ExamSet/reading
@@ -77,6 +79,63 @@ namespace WebRtcApi.Controllers
                 .ToListAsync();
 
             return Ok(examSets);
+        }
+
+
+
+        // GET: api/ExamSet/speaking/{id}
+        [HttpGet("speaking/{id}")]
+        public async Task<ActionResult<object>> GetSpeakingExamSet(int id)
+        {
+            try
+            {
+                _logger.LogInformation($"Getting speaking exam set with id: {id}");
+                _logger.LogInformation($"Request received for speaking exam set {id}");
+
+                var examSet = await _context.SpeakingExamSets
+                    .Include(s => s.SpeakingExams)
+                    .FirstOrDefaultAsync(s => s.ExamSetId == id);
+
+                if (examSet == null)
+                {
+                    _logger.LogWarning($"Speaking exam set with ID {id} not found");
+                    return NotFound($"Speaking exam set with ID {id} not found");
+                }
+
+                _logger.LogInformation($"Found {examSet.SpeakingExams?.Count ?? 0} questions");
+
+                var result = new
+                {
+                    id = examSet.ExamSetId,
+                    code = examSet.ExamSetCode,
+                    name = examSet.ExamSetTitle,
+                    description = "",
+                    targetQuestions = examSet.TotalQuestions,
+                    questions = examSet.SpeakingExams?
+                        .Select(q => new
+                        {
+                            id = q.SpeakingExamId,
+                            text = q.QuestionText,
+                            partNumber = q.PartNumber,
+                            partTitle = q.PartTitle,
+                            cueCardTopic = q.CueCardTopic,
+                            cueCardPrompts = q.CueCardPrompts,
+                            timeLimit = q.TimeLimit,
+                            createdAt = q.CreatedAt
+                        })
+                        .ToList(),
+                    questionCount = examSet.SpeakingExams?.Count ?? 0,
+                    createdAt = examSet.CreatedAt,
+                    type = "Speaking"
+                };
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting speaking exam set");
+                return StatusCode(500, new { message = "Internal server error" });
+            }
         }
 
         // GET: api/ExamSet/writing
@@ -152,30 +211,7 @@ namespace WebRtcApi.Controllers
             return Ok(examSet);
         }
 
-        // GET: api/ExamSet/Speaking/{id}
-        [HttpGet("Speaking/{id}")]
-        public async Task<ActionResult<object>> GetSpeakingExamSet(int id)
-        {
-            var examSet = await _context.SpeakingExamSets
-                .Where(s => s.ExamSetId == id)
-                .Select(s => new
-                {
-                    id = s.ExamSetId,
-                    code = s.ExamSetCode,
-                    name = s.ExamSetTitle,
-                    description = "",
-                    targetQuestions = s.TotalQuestions,
-                    questionCount = _context.SpeakingExams.Count(e => e.ExamSetId == s.ExamSetId),
-                    createdAt = s.CreatedAt,
-                    type = "Speaking"
-                })
-                .FirstOrDefaultAsync();
 
-            if (examSet == null)
-                return NotFound();
-
-            return Ok(examSet);
-        }
 
         // GET: api/ExamSet/Writing/{id}
         [HttpGet("Writing/{id}")]

@@ -82,7 +82,7 @@ export default function SpeakingExam() {
       // If we have courseId instead of examSetId, get the first speaking exam set for this course
       if (courseId && !examSetId) {
         // For now, we'll use a default examSetId. In a real app, you'd fetch exam sets by course
-        actualExamSetId = '2'; // Default speaking exam set
+        actualExamSetId = '1'; // Default speaking exam set
       }
       
       if (!actualExamSetId) {

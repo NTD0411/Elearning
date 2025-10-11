@@ -4,6 +4,7 @@ using WebRtcApi.Data;
 using WebRtcApi.Models;
 using WebRtcApi.Dtos.Submissions;
 using WebRtcApi.Services;
+using System.Text.Json;
 
 namespace WebRtcApi.Controllers;
 
@@ -49,9 +50,19 @@ public class SubmissionController : ControllerBase
             // AI Scoring for Writing submissions
             if (createDto.ExamType?.ToLower() == "writing" && !string.IsNullOrEmpty(createDto.Answers))
             {
-                await ScoreWritingSubmissionAsync(submission, createDto);
-                // Refresh submission to get updated AI scores
-                await _context.Entry(submission).ReloadAsync();
+                _logger.LogInformation("Starting AI scoring for writing submission {SubmissionId}", submission.SubmissionId);
+                try
+                {
+                    await ScoreWritingSubmissionAsync(submission, createDto);
+                    // Refresh submission to get updated AI scores
+                    await _context.Entry(submission).ReloadAsync();
+                    _logger.LogInformation("AI scoring completed successfully for submission {SubmissionId}", submission.SubmissionId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "AI scoring failed for submission {SubmissionId}", submission.SubmissionId);
+                    // Continue with submission even if AI scoring fails
+                }
             }
 
             var submissionDto = new SubmissionDto
@@ -473,6 +484,12 @@ public class SubmissionController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during AI scoring for submission {SubmissionId}", submission.SubmissionId);
+            
+            // Set a flag to indicate AI scoring failed
+            submission.Status = "AI Scoring Failed";
+            submission.AiGeneralFeedback = "AI scoring encountered an error. This might be due to API quota exceeded or network issues.";
+            await _context.SaveChangesAsync();
+            
             // Don't throw - allow submission to succeed even if AI scoring fails
         }
     }
@@ -482,11 +499,35 @@ public class SubmissionController : ControllerBase
         // Combine all prompts/questions into one string
         var prompts = new List<string>();
         
+        // Task 1 prompt
         if (!string.IsNullOrEmpty(writingExam.Task1Description))
-            prompts.Add($"Task 1: {writingExam.Task1Description}");
+        {
+            var task1Prompt = $"Task 1: {writingExam.Task1Description}";
+            if (!string.IsNullOrEmpty(writingExam.Task1Requirements))
+                task1Prompt += $"\nRequirements: {writingExam.Task1Requirements}";
+            if (writingExam.Task1MinWords > 0)
+                task1Prompt += $"\nMinimum words: {writingExam.Task1MinWords}";
+            prompts.Add(task1Prompt);
+        }
             
+        // Task 2 prompt
         if (!string.IsNullOrEmpty(writingExam.Task2Question))
-            prompts.Add($"Task 2: {writingExam.Task2Question}");
+        {
+            var task2Prompt = $"Task 2: {writingExam.Task2Question}";
+            if (!string.IsNullOrEmpty(writingExam.Task2Context))
+                task2Prompt += $"\nContext: {writingExam.Task2Context}";
+            if (!string.IsNullOrEmpty(writingExam.Task2Requirements))
+                task2Prompt += $"\nRequirements: {writingExam.Task2Requirements}";
+            if (writingExam.Task2MinWords > 0)
+                task2Prompt += $"\nMinimum words: {writingExam.Task2MinWords}";
+            prompts.Add(task2Prompt);
+        }
+
+        // Fallback to old QuestionText if new fields are empty
+        if (prompts.Count == 0 && !string.IsNullOrEmpty(writingExam.QuestionText))
+        {
+            prompts.Add(writingExam.QuestionText);
+        }
 
         return string.Join("\n\n", prompts);
     }
@@ -499,11 +540,32 @@ public class SubmissionController : ControllerBase
         try
         {
             // Parse JSON and extract text responses
-            // This depends on your JSON structure
-            return answersJson; // For now, assume the entire answers field is the response
+            var answers = JsonSerializer.Deserialize<JsonElement>(answersJson);
+            var responses = new List<string>();
+
+            // Extract Task 1 response
+            if (answers.TryGetProperty("task1", out var task1))
+            {
+                if (task1.TryGetProperty("answer", out var task1Answer))
+                {
+                    responses.Add($"Task 1 Response:\n{task1Answer.GetString()}");
+                }
+            }
+
+            // Extract Task 2 response
+            if (answers.TryGetProperty("task2", out var task2))
+            {
+                if (task2.TryGetProperty("answer", out var task2Answer))
+                {
+                    responses.Add($"Task 2 Response:\n{task2Answer.GetString()}");
+                }
+            }
+
+            return string.Join("\n\n", responses);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error parsing student response JSON");
             return answersJson ?? string.Empty;
         }
     }
@@ -524,4 +586,84 @@ public class SubmissionController : ControllerBase
             return "IELTS Writing";
     }
 
+    [HttpPost("test-ai-scoring")]
+    public async Task<ActionResult> TestAIScoring([FromBody] TestAIScoringRequest request)
+    {
+        try
+        {
+            _logger.LogInformation("Testing AI scoring with sample data");
+            
+            var scoreResult = await _aiScoringService.ScoreWritingAsync(
+                request.Prompt, 
+                request.StudentResponse, 
+                request.WritingType);
+
+            return Ok(new
+            {
+                success = true,
+                result = scoreResult
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error testing AI scoring");
+            return BadRequest(new
+            {
+                success = false,
+                error = ex.Message
+            });
+        }
+    }
+
+    [HttpGet("ai-feedback/{id}")]
+    public async Task<ActionResult<SubmissionDto>> GetAIFeedback(int id)
+    {
+        try
+        {
+            var submission = await _context.Submissions.FindAsync(id);
+            if (submission == null)
+            {
+                return NotFound($"Submission with ID {id} not found.");
+            }
+
+            var submissionDto = new SubmissionDto
+            {
+                SubmissionId = submission.SubmissionId,
+                UserId = submission.UserId,
+                ExamCourseId = submission.ExamCourseId,
+                ExamType = submission.ExamType,
+                ExamId = submission.ExamId,
+                Answers = submission.Answers,
+                TotalWordCount = submission.TotalWordCount,
+                TimeSpent = submission.TimeSpent,
+                SubmittedAt = submission.SubmittedAt,
+                AiScore = submission.AiScore,
+                MentorScore = submission.MentorScore,
+                AiTaskAchievementScore = submission.AiTaskAchievementScore,
+                AiTaskAchievementFeedback = submission.AiTaskAchievementFeedback,
+                AiCoherenceCohesionScore = submission.AiCoherenceCohesionScore,
+                AiCoherenceCohesionFeedback = submission.AiCoherenceCohesionFeedback,
+                AiLexicalResourceScore = submission.AiLexicalResourceScore,
+                AiLexicalResourceFeedback = submission.AiLexicalResourceFeedback,
+                AiGrammaticalRangeScore = submission.AiGrammaticalRangeScore,
+                AiGrammaticalRangeFeedback = submission.AiGrammaticalRangeFeedback,
+                AiGeneralFeedback = submission.AiGeneralFeedback,
+                Status = submission.Status
+            };
+
+            return Ok(submissionDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting AI feedback for submission {SubmissionId}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+}
+
+public class TestAIScoringRequest
+{
+    public string Prompt { get; set; } = string.Empty;
+    public string StudentResponse { get; set; } = string.Empty;
+    public string WritingType { get; set; } = "IELTS Writing";
 }

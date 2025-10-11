@@ -118,6 +118,53 @@ export default function WritingExamPage() {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const pollForAIFeedback = async (submissionId: number) => {
+    let attempts = 0;
+    const maxAttempts = 30; // 30 attempts = 30 seconds
+    
+    const poll = async () => {
+      try {
+        const response = await fetch(`http://localhost:5074/api/Submission/ai-feedback/${submissionId}`);
+        if (response.ok) {
+          const result = await response.json();
+          
+          if (result.aiScore !== null && result.aiScore !== undefined && result.aiTaskAchievementScore !== null && result.aiTaskAchievementScore !== undefined) {
+            console.log('AI feedback received:', result);
+            setAIFeedback({
+              overallBand: result.aiScore,
+              taskAchievementScore: result.aiTaskAchievementScore,
+              taskAchievementFeedback: result.aiTaskAchievementFeedback || '',
+              coherenceCohesionScore: result.aiCoherenceCohesionScore || 0,
+              coherenceCohesionFeedback: result.aiCoherenceCohesionFeedback || '',
+              lexicalResourceScore: result.aiLexicalResourceScore || 0,
+              lexicalResourceFeedback: result.aiLexicalResourceFeedback || '',
+              grammaticalRangeScore: result.aiGrammaticalRangeScore || 0,
+              grammaticalRangeFeedback: result.aiGrammaticalRangeFeedback || '',
+              generalFeedback: result.aiGeneralFeedback || ''
+            });
+            setShowAIFeedback(true);
+            return;
+          }
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(poll, 1000); // Poll every 1 second
+        } else {
+          alert('AI scoring is taking longer than expected. This might be due to:\n\n1. OpenAI API quota exceeded\n2. Network connectivity issues\n3. High server load\n\nPlease check your results later or contact support.');
+        }
+      } catch (error) {
+        console.error('Error polling for AI feedback:', error);
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(poll, 1000);
+        }
+      }
+    };
+    
+    poll();
+  };
+
   const handleSubmit = async () => {
     if (!session?.user?.id || !writingExam) {
       alert('Please login to submit your exam');
@@ -160,8 +207,11 @@ export default function WritingExamPage() {
 
       const result = await response.json();
       
+      console.log('Submission result:', result);
+      
       // Check if AI feedback is available
-      if (result.aiScore && result.aiTaskAchievementScore) {
+      if (result.aiScore !== null && result.aiScore !== undefined && result.aiTaskAchievementScore !== null && result.aiTaskAchievementScore !== undefined) {
+        console.log('AI feedback available:', result);
         setAIFeedback({
           overallBand: result.aiScore,
           taskAchievementScore: result.aiTaskAchievementScore,
@@ -175,6 +225,10 @@ export default function WritingExamPage() {
           generalFeedback: result.aiGeneralFeedback || ''
         });
         setShowAIFeedback(true);
+      } else {
+        console.log('No AI feedback available yet. AI Score:', result.aiScore, 'Task Achievement Score:', result.aiTaskAchievementScore);
+        // Poll for AI feedback
+        pollForAIFeedback(result.submissionId);
       }
 
       setIsSubmitted(true);

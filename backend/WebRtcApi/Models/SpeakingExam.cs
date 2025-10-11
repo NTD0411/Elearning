@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using WebRtcApi.Models;
+using Microsoft.AspNetCore.Cors; // Add this using directive
 
 namespace WebRtcApi.Models;
 
+[EnableCors("AllowAll")] // Apply the EnableCors attribute at the class level
 public partial class SpeakingExam
 {
     public int SpeakingExamId { get; set; }
 
-    public int? ExamSetId { get; set; }
+    public int ExamSetId { get; set; }
 
     public string QuestionText { get; set; } = null!;
     
@@ -24,5 +27,7 @@ public partial class SpeakingExam
 
     public DateTime? CreatedAt { get; set; }
 
-    public virtual SpeakingExamSet? ExamSet { get; set; }
+    public virtual SpeakingExamSet ExamSet { get; set; }
 }
+
+
