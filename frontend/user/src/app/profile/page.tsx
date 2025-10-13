@@ -8,11 +8,13 @@ import Link from "next/link";
 import { AuthService } from "@/services/authService";
 import toast from "react-hot-toast";
 import Loader from "@/components/Common/Loader";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading, accessToken } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Add padding for header height
   React.useEffect(() => {
@@ -59,6 +61,60 @@ export default function ProfilePage() {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please select a valid image file (JPEG, PNG, GIF, WebP)');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('http://localhost:5074/api/Upload/profile-picture', {
+        method: 'POST',
+        body: formData,
+        // headers: {
+        //   'Authorization': `Bearer ${accessToken}` // Add when auth is enabled
+        // }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || 'Upload failed');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setFormData(prev => ({
+          ...prev,
+          portraitUrl: `http://localhost:5074${result.fileUrl}`
+        }));
+        toast.success('Profile picture uploaded successfully!');
+      } else {
+        throw new Error(result.message || 'Upload failed');
+      }
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error.message || 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -174,10 +230,22 @@ export default function ProfilePage() {
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
-                  <span className="text-white text-2xl font-medium">
-                    {user?.email?.charAt(0).toUpperCase()}
-                  </span>
+                <div className="relative w-16 h-16">
+                  {formData.portraitUrl ? (
+                    <Image
+                      src={formData.portraitUrl}
+                      alt="Profile"
+                      width={64}
+                      height={64}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
+                      <span className="text-white text-2xl font-medium">
+                        {user?.email?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
@@ -206,6 +274,54 @@ export default function ProfilePage() {
             <div className="p-6">
               {isEditing ? (
                 <form onSubmit={handleUpdateProfile} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Profile Picture
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        {formData.portraitUrl ? (
+                          <div className="relative group">
+                            <Image
+                              src={formData.portraitUrl}
+                              alt="Profile preview"
+                              width={80}
+                              height={80}
+                              className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, portraitUrl: '' }))}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Icon icon="heroicons:x-mark" className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center border-2 border-gray-300">
+                            <Icon icon="heroicons:user" className="w-8 h-8 text-gray-400" />
+                          </div>
+                        )}
+                        {uploadingImage && (
+                          <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                          onChange={handleImageUpload}
+                          disabled={uploadingImage}
+                          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white hover:file:bg-primary/90 file:cursor-pointer disabled:opacity-50"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          JPG, PNG, GIF, WebP. Max size: 5MB
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Full Name
@@ -308,6 +424,42 @@ export default function ProfilePage() {
                 </form>
               ) : (
                 <div className="space-y-4">
+                  <div className="group">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Profile Picture
+                    </label>
+                    <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                      <div className="flex items-center space-x-3">
+                        {formData.portraitUrl ? (
+                          <Image
+                            src={formData.portraitUrl}
+                            alt="Profile"
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                            <Icon icon="heroicons:user" className="w-5 h-5 text-gray-500" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-gray-900">
+                            {formData.portraitUrl ? "Profile picture set" : "No profile picture"}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formData.portraitUrl ? "Click edit to change" : "Click edit to upload"}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Icon icon="heroicons:pencil" className="w-4 h-4 text-gray-400 hover:text-primary" />
+                      </button>
+                    </div>
+                  </div>
                   <div className="group">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Full Name

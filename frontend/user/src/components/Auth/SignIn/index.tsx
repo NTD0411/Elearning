@@ -48,18 +48,19 @@ const Signin = ({ onSwitchToForgotPassword, onLoginSuccess, onSwitchToSignUp }: 
       }
 
       if (result?.ok && !result?.error) {
-        // Lấy session để kiểm tra token
         const session = await getSession();
         console.log("Login successful, session:", session);
-        
         toast.success("Login successful");
         setLoading(false);
-        
+
         // Close the modal
-        if (onLoginSuccess) {
-          onLoginSuccess();
+        if (onLoginSuccess) onLoginSuccess();
+
+        const role = (session?.user as any)?.role?.toLowerCase?.();
+        if (role === 'admin') {
+          window.location.href = 'http://localhost:5173/';
+          return;
         }
-        
         router.push("/");
       }
     } catch (error: any) {

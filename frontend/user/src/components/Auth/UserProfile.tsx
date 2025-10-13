@@ -5,6 +5,7 @@ import { signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import Link from "next/link";
+import Image from "next/image";
 
 const UserProfile = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -46,13 +47,23 @@ const UserProfile = () => {
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
       >
-        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-          <span className="text-white text-sm font-medium">
-            {(user.name || user.email)?.charAt(0).toUpperCase()}
-          </span>
-        </div>
-        <span className="text-gray-900 dark:text-gray-100 text-sm font-medium">
-          {user.name || user.email?.split('@')[0]}
+        {((user as any)?.portraitUrl) ? (
+          <Image
+            src={(user as any).portraitUrl}
+            alt="avatar"
+            width={32}
+            height={32}
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+            <span className="text-white text-sm font-medium">
+              {(user.name || user.email)?.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
+        <span className="text-gray-900 dark:text-gray-100 text-sm font-medium truncate max-w-[140px]">
+          {(user as any)?.fullName || user.name || user.email?.split('@')[0]}
         </span>
         <Icon
           icon={isDropdownOpen ? "heroicons:chevron-up" : "heroicons:chevron-down"}

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace WebRtcApi.Controllers
 {
@@ -15,8 +17,12 @@ namespace WebRtcApi.Controllers
             _logger = logger;
         }
 
-        [HttpPost("audio")]
-        public async Task<IActionResult> UploadAudio(IFormFile file)
+        /// <summary>
+        /// Upload profile picture
+        /// </summary>
+        [HttpPost("profile-picture")]
+        // [Authorize] // Temporarily disabled for testing
+        public async Task<ActionResult<UploadResponseDto>> UploadProfilePicture(IFormFile file)
         {
             try
             {
@@ -26,29 +32,31 @@ namespace WebRtcApi.Controllers
                 }
 
                 // Validate file type
-                var allowedTypes = new[] { "audio/mpeg", "audio/wav", "audio/mp3", "audio/m4a", "audio/ogg" };
-                if (!allowedTypes.Contains(file.ContentType.ToLower()))
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                
+                if (!allowedExtensions.Contains(fileExtension))
                 {
-                    return BadRequest("Invalid file type. Only audio files are allowed.");
+                    return BadRequest("Invalid file type. Only JPG, JPEG, PNG, GIF, and WebP files are allowed.");
                 }
 
-                // Validate file size (max 50MB)
-                if (file.Length > 50 * 1024 * 1024)
+                // Validate file size (max 5MB)
+                if (file.Length > 5 * 1024 * 1024)
                 {
-                    return BadRequest("File size exceeds 50MB limit");
-                }
-
-                // Create uploads directory if it doesn't exist
-                var uploadsDir = Path.Combine(_environment.WebRootPath, "uploads", "audio");
-                if (!Directory.Exists(uploadsDir))
-                {
-                    Directory.CreateDirectory(uploadsDir);
+                    return BadRequest("File size too large. Maximum size is 5MB.");
                 }
 
                 // Generate unique filename
-                var fileExtension = Path.GetExtension(file.FileName);
-                var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                var filePath = Path.Combine(uploadsDir, fileName);
+                var fileName = GenerateUniqueFileName(file.FileName);
+                var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "profiles");
+                
+                // Create directory if it doesn't exist
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var filePath = Path.Combine(uploadsFolder, fileName);
 
                 // Save file
                 using (var stream = new FileStream(filePath, FileMode.Create))
@@ -56,69 +64,92 @@ namespace WebRtcApi.Controllers
                     await file.CopyToAsync(stream);
                 }
 
-                // Return the URL to access the file
-                var fileUrl = $"{Request.Scheme}://{Request.Host}/uploads/audio/{fileName}";
-
-                return Ok(new { url = fileUrl });
+                // Return the URL path
+                var fileUrl = $"/uploads/profiles/{fileName}";
+                
+                _logger.LogInformation($"Profile picture uploaded successfully: {fileName}");
+                
+                return Ok(new UploadResponseDto
+                {
+                    Success = true,
+                    FileUrl = fileUrl,
+                    FileName = fileName,
+                    FileSize = file.Length,
+                    Message = "Profile picture uploaded successfully"
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error uploading audio file");
-                return StatusCode(500, "Internal server error");
+                _logger.LogError(ex, "Error uploading profile picture");
+                return StatusCode(500, new UploadResponseDto
+                {
+                    Success = false,
+                    Message = "Internal server error while uploading file"
+                });
             }
         }
 
-        [HttpPost("image")]
-        public async Task<IActionResult> UploadImage(IFormFile file)
+        /// <summary>
+        /// Delete profile picture
+        /// </summary>
+        [HttpDelete("profile-picture")]
+        // [Authorize] // Temporarily disabled for testing
+        public async Task<ActionResult> DeleteProfilePicture([FromBody] DeleteFileDto deleteRequest)
         {
             try
             {
-                if (file == null || file.Length == 0)
+                if (string.IsNullOrEmpty(deleteRequest.FileUrl))
                 {
-                    return BadRequest("No file uploaded");
+                    return BadRequest("File URL is required");
                 }
 
-                // Validate file type
-                var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" };
-                if (!allowedTypes.Contains(file.ContentType.ToLower()))
+                // Extract filename from URL
+                var fileName = Path.GetFileName(deleteRequest.FileUrl);
+                var filePath = Path.Combine(_environment.WebRootPath, "uploads", "profiles", fileName);
+
+                if (System.IO.File.Exists(filePath))
                 {
-                    return BadRequest("Invalid file type. Only image files are allowed.");
+                    System.IO.File.Delete(filePath);
+                    _logger.LogInformation($"Profile picture deleted successfully: {fileName}");
+                    return Ok(new { message = "File deleted successfully" });
                 }
-
-                // Validate file size (max 10MB)
-                if (file.Length > 10 * 1024 * 1024)
+                else
                 {
-                    return BadRequest("File size exceeds 10MB limit");
+                    return NotFound("File not found");
                 }
-
-                // Create uploads directory if it doesn't exist
-                var uploadsDir = Path.Combine(_environment.WebRootPath, "uploads", "images");
-                if (!Directory.Exists(uploadsDir))
-                {
-                    Directory.CreateDirectory(uploadsDir);
-                }
-
-                // Generate unique filename
-                var fileExtension = Path.GetExtension(file.FileName);
-                var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                var filePath = Path.Combine(uploadsDir, fileName);
-
-                // Save file
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
-
-                // Return the URL to access the file
-                var fileUrl = $"{Request.Scheme}://{Request.Host}/uploads/images/{fileName}";
-
-                return Ok(new { url = fileUrl });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error uploading image file");
-                return StatusCode(500, "Internal server error");
+                _logger.LogError(ex, "Error deleting profile picture");
+                return StatusCode(500, "Internal server error while deleting file");
             }
         }
+
+        private string GenerateUniqueFileName(string originalFileName)
+        {
+            var extension = Path.GetExtension(originalFileName);
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var randomBytes = new byte[8];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomBytes);
+            }
+            var randomString = Convert.ToHexString(randomBytes).ToLowerInvariant();
+            return $"profile_{timestamp}_{randomString}{extension}";
+        }
+    }
+
+    public class UploadResponseDto
+    {
+        public bool Success { get; set; }
+        public string? FileUrl { get; set; }
+        public string? FileName { get; set; }
+        public long FileSize { get; set; }
+        public string? Message { get; set; }
+    }
+
+    public class DeleteFileDto
+    {
+        public string FileUrl { get; set; } = string.Empty;
     }
 }

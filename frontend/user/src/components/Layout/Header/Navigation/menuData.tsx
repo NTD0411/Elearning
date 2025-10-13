@@ -14,7 +14,7 @@ export const getHeaderData = (role?: string): HeaderItem[] => {
       ];
 
   const remainingItems: HeaderItem[] = [
-    { label: "Mentor", href: "/#mentor" },
+    { label: "Mentor", href: "/mentor" },
     { label: "Tips", href: "/tips" },
   ];
 

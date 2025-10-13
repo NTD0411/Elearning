@@ -104,6 +104,13 @@ const authOptions: NextAuthOptions = {
       
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      // Preserve default behavior for internal redirects
+      if (url.startsWith(baseUrl)) return url;
+      // If the callbackUrl asks for admin, route to admin app
+      if (url.includes('admin=true')) return 'http://localhost:5173/';
+      return baseUrl;
+    },
   },
   pages: {
     signIn: '/signin',

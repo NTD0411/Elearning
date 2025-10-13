@@ -29,6 +29,9 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        // Support System.DateOnly and nullable DateOnly in JSON payloads
+        options.JsonSerializerOptions.Converters.Add(new WebRtcApi.Infrastructure.Converters.DateOnlyJsonConverter());
+        options.JsonSerializerOptions.Converters.Add(new WebRtcApi.Infrastructure.Converters.NullableDateOnlyJsonConverter());
     });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
