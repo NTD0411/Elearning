@@ -90,6 +90,36 @@ export default function ExamHistoryPage() {
     fetchHistory();
   }, [session, status]);
 
+  // Auto-refresh when DB changes: periodic polling and on focus/visibility change
+  useEffect(() => {
+    if (status !== 'authenticated' || !session?.user?.id) return;
+
+    let timer: any;
+    const doFetch = async () => {
+      try {
+        const response = await fetch(`http://localhost:5074/api/Submission/user/${session.user.id}/history`, { cache: 'no-store' });
+        if (!response.ok) return;
+        const historyData = await response.json();
+        setSubmissions(historyData);
+      } catch {}
+    };
+
+    // Poll every 20s
+    timer = setInterval(doFetch, 20000);
+
+    // Refetch on window focus or when tab becomes visible
+    const onFocus = () => doFetch();
+    const onVisibility = () => { if (document.visibilityState === 'visible') doFetch(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [session, status]);
+
   const filteredSubmissions = submissions.filter(submission => {
     if (selectedExamType === 'all') return true;
     return submission.examType?.toLowerCase() === selectedExamType.toLowerCase();

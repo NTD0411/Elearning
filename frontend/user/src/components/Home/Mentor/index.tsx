@@ -5,6 +5,7 @@ import "slick-carousel/slick/slick-theme.css";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { getImagePrefix } from "@/utils/util";
+import { ensureAbsoluteUrl } from "@/utils/image";
 import Link from "next/link";
 
 interface Mentor {
@@ -87,7 +88,7 @@ const Mentor = () => {
                                         <div className="relative cursor-pointer">
                                             <div className="inline-flex m-auto w-[200px] h-[200px] md:w-[240px] md:h-[240px] rounded-full overflow-hidden items-center justify-center">
                                                 <Image 
-                                                    src={mentor.portraitUrl || `${getImagePrefix()}images/mentor/user1.png`} 
+                                                    src={ensureAbsoluteUrl(mentor.portraitUrl) || `${getImagePrefix()}images/mentor/user1.png`} 
                                                     alt="mentor-image" 
                                                     width={240} 
                                                     height={240} 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getImagePrefix } from '@/utils/util';
+import { ensureAbsoluteUrl } from '@/utils/image';
 
 interface Mentor {
   userId: number;
@@ -104,7 +105,7 @@ export default function MentorPage() {
                   <div className="flex items-center justify-center mb-4">
                     <div className="relative w-[96px] h-[96px] rounded-full overflow-hidden">
                       <Image
-                        src={mentor.portraitUrl || `${getImagePrefix()}images/mentor/user1.png`}
+                        src={ensureAbsoluteUrl(mentor.portraitUrl) || `${getImagePrefix()}images/mentor/user1.png`}
                         alt={`${mentor.fullName} profile`}
                         width={96}
                         height={96}

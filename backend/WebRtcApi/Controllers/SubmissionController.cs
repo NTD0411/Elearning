@@ -47,6 +47,10 @@ public class SubmissionController : ControllerBase
             _context.Submissions.Add(submission);
             await _context.SaveChangesAsync();
 
+            // TODO: push real-time notification to student when mentor leaves feedback
+            // This can be implemented via SignalR hub broadcasting to the student's userId
+            // Example (pseudo): await _notificationHub.Clients.User(submission.UserId.ToString()).SendAsync("feedback:new", new { submissionId = id });
+
             // AI Scoring for Writing submissions
             if (createDto.ExamType?.ToLower() == "writing" && !string.IsNullOrEmpty(createDto.Answers))
             {
