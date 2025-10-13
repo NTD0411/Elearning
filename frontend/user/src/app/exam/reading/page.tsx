@@ -93,7 +93,7 @@ const IELTSReading: React.FC = () => {
         }
         
         const examSetId = readingExamSets[0].examSetId;
-        const response = await fetch(`http://localhost:5000/api/ReadingExam/examset/${examSetId}/take-exam`);
+        const response = await fetch(`http://localhost:5074/api/ReadingExam/examset/${examSetId}/take-exam`);
         if (!response.ok) {
           throw new Error('Failed to load exam');
         }
@@ -166,7 +166,7 @@ const IELTSReading: React.FC = () => {
         submittedAt: new Date().toISOString()
       };
 
-      const response = await fetch('http://localhost:5000/api/ReadingExam/submit', {
+      const response = await fetch('http://localhost:5074/api/ReadingExam/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
