@@ -27,3 +27,5 @@ public class CreateFeedbackReplyDto
     public int UserId { get; set; }
     public string ReplyText { get; set; } = string.Empty;
 }
+
+

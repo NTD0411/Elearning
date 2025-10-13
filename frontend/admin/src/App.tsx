@@ -31,6 +31,7 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import UserManagementPage from "./pages/UserManagementPage";
+import MentorRequests from "./pages/mentor-requests";
 
 export default function App() {
   return (
@@ -63,6 +64,7 @@ export default function App() {
             <Route path="exam-courses/:id" element={<ExamCourseDetail />} />
             <Route path="students" element={<StudentsManagement />} />
             <Route path="mentors" element={<MentorsManagement />} />
+            <Route path="mentor-requests" element={<MentorRequests />} />
             <Route path="alerts" element={<Alerts />} />
             <Route path="avatars" element={<Avatars />} />
             <Route path="badge" element={<Badges />} />

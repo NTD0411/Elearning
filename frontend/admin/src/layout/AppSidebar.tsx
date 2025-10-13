@@ -50,6 +50,11 @@ const navItems: NavItem[] = [
     path: "mentors",
   },
   {
+    icon: <UserCircleIcon />,
+    name: "Mentor Requests",
+    path: "mentor-requests",
+  },
+  {
     name: "Exam Sets",
     icon: <ListIcon />,
     subItems: [

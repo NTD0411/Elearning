@@ -110,6 +110,81 @@ namespace WebRtcApi.Controllers
         }
 
         /// <summary>
+        /// Student submits a mentor request (certificate url + experience)
+        /// </summary>
+        [HttpPost("{id}/mentor-request")]
+        // [Authorize] // Temporarily disabled for testing
+        public async Task<ActionResult> CreateMentorRequest(int id, [FromBody] MentorRequestDto request)
+        {
+            try
+            {
+                var ok = await _userRepository.CreateMentorRequestAsync(id, request.CertificateUrl, request.Experience);
+                if (!ok) return NotFound($"User with ID {id} not found");
+                return Ok(new { message = "Mentor request submitted" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error creating mentor request: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Admin gets pending mentor requests
+        /// </summary>
+        [HttpGet("mentor-requests/pending")]
+        // [Authorize] // Temporarily disabled for testing
+        public async Task<ActionResult<List<UserListDto>>> GetPendingMentorRequests()
+        {
+            try
+            {
+                var list = await _userRepository.GetPendingMentorRequestsAsync();
+                return Ok(list);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error retrieving mentor requests: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Admin approves mentor request (promote role to mentor)
+        /// </summary>
+        [HttpPost("{id}/mentor-requests/approve")]
+        // [Authorize] // Temporarily disabled for testing
+        public async Task<ActionResult> ApproveMentorRequest(int id)
+        {
+            try
+            {
+                var ok = await _userRepository.ApproveMentorRequestAsync(id);
+                if (!ok) return NotFound($"User with ID {id} not found");
+                return Ok(new { message = "Mentor request approved" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error approving mentor request: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Admin rejects mentor request
+        /// </summary>
+        [HttpPost("{id}/mentor-requests/reject")]
+        // [Authorize] // Temporarily disabled for testing
+        public async Task<ActionResult> RejectMentorRequest(int id, [FromBody] string reason)
+        {
+            try
+            {
+                var ok = await _userRepository.RejectMentorRequestAsync(id, reason);
+                if (!ok) return NotFound($"User with ID {id} not found");
+                return Ok(new { message = "Mentor request rejected" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error rejecting mentor request: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Update user status
         /// </summary>
         [HttpPut("{id}/status")]
