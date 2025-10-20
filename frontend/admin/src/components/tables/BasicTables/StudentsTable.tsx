@@ -37,14 +37,11 @@ export default function StudentsTable() {
     }
   };
 
-  const handleToggleStatus = async (studentId: string, currentStatus: boolean) => {
+  const handleToggleStatus = async (studentId: string, currentStatus: string) => {
     try {
       const id = parseInt(studentId);
-      if (currentStatus) {
-        await UserService.updateUserStatus(id, 'inactive');
-      } else {
-        await UserService.updateUserStatus(id, 'active');
-      }
+      const newStatus = currentStatus?.toLowerCase() === 'active' ? 'Inactive' : 'Active';
+      await UserService.updateUserStatus(id, newStatus);
       // Refresh the list
       fetchStudents();
     } catch (err) {
@@ -165,9 +162,9 @@ export default function StudentsTable() {
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                     <Badge
                       size="sm"
-                      color={student.status === 'active' ? "success" : "error"}
+                      color={student.status?.toLowerCase() === 'active' ? "success" : "error"}
                     >
-                      {student.status === 'active' ? "Hoạt động" : "Bị khóa"}
+                      {student.status?.toLowerCase() === 'active' ? "Hoạt động" : "Bị khóa"}
                     </Badge>
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
@@ -175,14 +172,14 @@ export default function StudentsTable() {
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                     <button
-                      onClick={() => handleToggleStatus(student.userId.toString(), student.status === 'active')}
+                      onClick={() => handleToggleStatus(student.userId.toString(), student.status || '')}
                       className={`px-3 py-1 rounded text-xs font-medium ${
-                        student.status === 'active'
+                        student.status?.toLowerCase() === 'active'
                           ? 'bg-red-100 text-red-700 hover:bg-red-200'
                           : 'bg-green-100 text-green-700 hover:bg-green-200'
                       }`}
                     >
-                      {student.status === 'active' ? 'Khóa' : 'Mở khóa'}
+                      {student.status?.toLowerCase() === 'active' ? 'Khóa' : 'Mở khóa'}
                     </button>
                   </TableCell>
                 </TableRow>

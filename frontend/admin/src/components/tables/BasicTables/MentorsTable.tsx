@@ -36,16 +36,19 @@ export default function MentorsTable() {
     }
   };
 
-  const handleToggleStatus = async (mentorId: string, currentStatus: boolean) => {
+  const handleToggleStatus = async (mentorId: string, currentStatus: string) => {
     try {
       const id = parseInt(mentorId);
-      if (currentStatus) {
-        await UserService.updateUserStatus(id, 'inactive');
-      } else {
-        await UserService.updateUserStatus(id, 'active');
-      }
-      // Refresh the list
-      fetchMentors();
+      const newStatus = currentStatus?.toLowerCase() === 'active' ? 'Inactive' : 'Active';
+      console.log('Current status:', currentStatus);
+      console.log('New status:', newStatus);
+      const response = await UserService.updateUserStatus(id, newStatus);
+      console.log('Update response:', response);
+      console.log('Status updated successfully');
+      // Wait a moment before refreshing to ensure the update has propagated
+      setTimeout(() => {
+        fetchMentors();
+      }, 500);
     } catch (err) {
       console.error('Error toggling mentor status:', err);
       alert('Có lỗi xảy ra khi thay đổi trạng thái mentor');
@@ -183,9 +186,9 @@ export default function MentorsTable() {
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                     <Badge
                       size="sm"
-                      color={mentor.status === 'active' ? "success" : "error"}
+                      color={mentor.status?.toLowerCase() === 'active' ? "success" : "error"}
                     >
-                      {mentor.status === 'active' ? "Hoạt động" : "Bị khóa"}
+                      {mentor.status?.toLowerCase() === 'active' ? "Hoạt động" : "Bị khóa"}
                     </Badge>
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
@@ -204,14 +207,14 @@ export default function MentorsTable() {
                         {mentor.approved ? 'Hủy duyệt' : 'Duyệt'}
                       </button>
                       <button
-                        onClick={() => handleToggleStatus(mentor.userId.toString(), mentor.status === 'active')}
-                        className={`px-2 py-1 rounded text-xs font-medium ${
-                          mentor.status === 'active'
-                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                            : 'bg-green-100 text-green-700 hover:bg-green-200'
-                        }`}
+                        onClick={() => handleToggleStatus(mentor.userId.toString(), mentor.status || '')}
+                      className={`px-2 py-1 rounded text-xs font-medium ${
+                        mentor.status?.toLowerCase() === 'active'
+                          ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200'
+                      }`}
                       >
-                        {mentor.status === 'active' ? 'Khóa' : 'Mở khóa'}
+                        {mentor.status?.toLowerCase() === 'active' ? 'Khóa' : 'Mở khóa'}
                       </button>
                     </div>
                   </TableCell>

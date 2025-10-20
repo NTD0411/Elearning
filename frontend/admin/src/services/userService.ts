@@ -37,7 +37,12 @@ export class UserService {
 
   // Update user status
   static async updateUserStatus(id: number, status: string): Promise<any> {
-    return apiClient.put(apiConfig.endpoints.users.updateStatus(id), status);
+    // Ensure first letter is capitalized
+    const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    console.log('Sending status update:', formattedStatus);
+    const response = await apiClient.put(apiConfig.endpoints.users.updateStatus(id), formattedStatus);
+    console.log('Status update response:', response);
+    return response;
   }
 
   // Update user role
