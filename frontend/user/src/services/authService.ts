@@ -44,8 +44,8 @@ export class AuthService {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        fullName: email, // Backend expects FullName instead of Email
-        passwordHash: password, // Backend expects PasswordHash
+        FullName: email, // Can be email or username
+        PasswordHash: password, // Backend will hash this
       }),
     })
 

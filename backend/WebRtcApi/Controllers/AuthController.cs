@@ -53,13 +53,20 @@ namespace WebRtcApi.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<TokenResponseDto>> Login(LoginDto request)
         {
-            var result = await authRepository.LoginAsync(request);
-            if (result is null)
+            try 
             {
-                return BadRequest("Invalid username or password");
-            }
+                var result = await authRepository.LoginAsync(request);
+                if (result is null)
+                {
+                    return BadRequest(new { message = "Invalid username or password" });
+                }
 
-            return Ok(result); 
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("refresh-token")]

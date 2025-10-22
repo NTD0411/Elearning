@@ -28,8 +28,16 @@ namespace WebRtcApi.Repositories.Auths
             {
                 return null;
             }
+            
+            // Kiểm tra password
             if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.PasswordHash)
                 == PasswordVerificationResult.Failed)
+            {
+                return null;
+            }
+            
+            // Kiểm tra user đã được approve chưa
+            if (user.Approved != true)
             {
                 return null;
             }

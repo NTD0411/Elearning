@@ -17,29 +17,51 @@ const authOptions: NextAuthOptions = {
 
         try {
           // Call backend API for login
+          const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5074/api'
           console.log('Attempting login with:', credentials.email);
-          console.log('API URL:', `${process.env.NEXT_PUBLIC_API_URL}/auth/login`);
+          console.log('API URL:', `${apiBase}/auth/login`);
+          console.log('Request body:', JSON.stringify({
+            FullName: credentials.email,
+            PasswordHash: credentials.password,
+          }));
           
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+          const response = await fetch(`${apiBase}/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              fullName: credentials.email, // Backend hỗ trợ cả email và fullName
-              passwordHash: credentials.password,
+              FullName: credentials.email, // Backend hỗ trợ cả email và fullName
+              PasswordHash: credentials.password,
             }),
           })
 
+          console.log('Response status:', response.status);
+          console.log('Response ok:', response.ok);
+          
           if (!response.ok) {
-            console.error('Login failed:', response.statusText)
+            const errorText = await response.text();
+            console.error('Login failed:', response.statusText, errorText);
             return null
           }
 
           const data = await response.json()
+          console.log('Login response data:', data);
+          
+          // Kiểm tra xem có user data không
+          if (!data.user) {
+            console.error('No user data in response:', data);
+            return null;
+          }
+          
+          console.log('User data:', data.user);
           
           // Decode JWT để lấy role từ claims
           const token = data.accessToken;
+          if (!token) {
+            console.error('No accessToken in response');
+            return null;
+          }
           const tokenParts = token.split('.');
           const payload = JSON.parse(atob(tokenParts[1]));
           const role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
@@ -58,8 +80,13 @@ const authOptions: NextAuthOptions = {
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Login error:', error)
+          console.error('Error details:', {
+            message: error?.message,
+            stack: error?.stack,
+            name: error?.name
+          })
           return null
         }
       }
