@@ -57,7 +57,7 @@ export default function ListeningQuestionForm() {
         
         if (uploadResponse.ok) {
           const uploadResult = await uploadResponse.json();
-          finalAudioUrl = uploadResult.url; // Assuming the API returns { url: "..." }
+          finalAudioUrl = uploadResult.fileUrl; // API returns { fileUrl: "..." }
         } else {
           throw new Error('Failed to upload audio file');
         }

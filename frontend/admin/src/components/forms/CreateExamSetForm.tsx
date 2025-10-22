@@ -108,14 +108,14 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
       const formData = new FormData();
       formData.append('file', imageFile);
       
-      const response = await fetch('http://localhost:5074/api/Upload/image', {
+      const response = await fetch('http://localhost:5074/api/Upload/reading-image', {
         method: 'POST',
         body: formData,
       });
       
       if (response.ok) {
         const result = await response.json();
-        return result.url;
+        return result.fileUrl;
       } else {
         throw new Error('Failed to upload image');
       }
