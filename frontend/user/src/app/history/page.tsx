@@ -399,7 +399,9 @@ export default function ExamHistoryPage() {
                         <p className="text-sm font-medium text-gray-900">
                           Score: {submission.scoreFormatted}
                         </p>
-                        {submission.examType?.toLowerCase() === 'writing' && submission.aiScore && (
+                        {(submission.examType?.toLowerCase() === 'writing' || 
+                          submission.examType?.toLowerCase() === 'reading' || 
+                          submission.examType?.toLowerCase() === 'listening') && submission.aiScore && (
                           <div className="flex items-center justify-end mt-1">
                             <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
                               AI: Band {submission.aiScore}
@@ -521,7 +523,11 @@ export default function ExamHistoryPage() {
                 <h4 className="font-medium text-gray-900 mb-3">Scores</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-blue-50 p-3 rounded-lg">
-                    <div className="text-sm font-medium text-blue-800">AI Score</div>
+                    <div className="text-sm font-medium text-blue-800">
+                      {selectedSubmission.examType?.toLowerCase() === 'writing' ? 'AI Score' : 
+                       selectedSubmission.examType?.toLowerCase() === 'reading' ? 'Reading Score' :
+                       selectedSubmission.examType?.toLowerCase() === 'listening' ? 'Listening Score' : 'AI Score'}
+                    </div>
                     <div className="text-lg font-bold text-blue-900">
                       {selectedSubmission.aiScore ? `Band ${selectedSubmission.aiScore}` : 'Not graded'}
                     </div>
@@ -710,6 +716,70 @@ export default function ExamHistoryPage() {
                               )}
                             </div>
                           );
+                        } catch (error) {
+                          console.error('Error parsing answers JSON:', error);
+                          return (
+                            <pre className="whitespace-pre-wrap text-sm text-gray-700 max-h-60 overflow-y-auto">
+                              {selectedSubmission.answers}
+                            </pre>
+                          );
+                        }
+                      })()
+                    ) : selectedSubmission.examType?.toLowerCase() === 'reading' || selectedSubmission.examType?.toLowerCase() === 'listening' ? (
+                      // Handle Reading and Listening Exam answers
+                      (() => {
+                        try {
+                          const answers = JSON.parse(selectedSubmission.answers);
+                          if (Array.isArray(answers)) {
+                            return (
+                              <div className="space-y-4">
+                                <div className="text-sm text-gray-600 mb-3">
+                                  {selectedSubmission.examType?.toLowerCase() === 'reading' ? '📖' : '🎧'} {selectedSubmission.examType} exam contains {answers.length} answer{answers.length !== 1 ? 's' : ''}
+                                </div>
+                                {answers.map((answer, index) => (
+                                  <div key={index} className="bg-white p-4 rounded-lg border">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <h5 className="font-medium text-gray-700">
+                                        Question {answer.questionId || index + 1}
+                                      </h5>
+                                      <span className="text-xs text-gray-500">
+                                        {answer.answerChoice ? `Choice: ${answer.answerChoice}` : 'Fill-in'}
+                                      </span>
+                                    </div>
+                                    <div className="space-y-2">
+                                      {answer.answerChoice && (
+                                        <div className="text-sm">
+                                          <span className="font-medium text-gray-600">Selected Answer:</span>
+                                          <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-medium">
+                                            {answer.answerChoice}
+                                          </span>
+                                        </div>
+                                      )}
+                                      {answer.answerFill && (
+                                        <div className="text-sm">
+                                          <span className="font-medium text-gray-600">Fill Answer:</span>
+                                          <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">
+                                            {answer.answerFill}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                                {answers.length === 0 && (
+                                  <div className="text-center py-4 text-gray-500">
+                                    No answers found
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <pre className="whitespace-pre-wrap text-sm text-gray-700 max-h-60 overflow-y-auto">
+                                {JSON.stringify(answers, null, 2)}
+                              </pre>
+                            );
+                          }
                         } catch (error) {
                           console.error('Error parsing answers JSON:', error);
                           return (

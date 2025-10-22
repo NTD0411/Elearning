@@ -140,6 +140,18 @@ namespace WebRtcApi.Data
                 entity.Property(e => e.OptionD)
                     .HasMaxLength(500)
                     .HasColumnName("option_d");
+                entity.Property(e => e.OptionE)
+                    .HasMaxLength(500)
+                    .HasColumnName("option_e");
+                entity.Property(e => e.OptionF)
+                    .HasMaxLength(500)
+                    .HasColumnName("option_f");
+                entity.Property(e => e.OptionG)
+                    .HasMaxLength(500)
+                    .HasColumnName("option_g");
+                entity.Property(e => e.OptionH)
+                    .HasMaxLength(500)
+                    .HasColumnName("option_h");
                 entity.Property(e => e.QuestionText).HasColumnName("question_text");
 
                 entity.HasOne(d => d.ExamSet).WithMany(p => p.ListeningExams)
@@ -163,6 +175,14 @@ namespace WebRtcApi.Data
                     .HasMaxLength(200)
                     .HasColumnName("exam_set_title");
                 entity.Property(e => e.TotalQuestions).HasColumnName("total_questions");
+                entity.Property(e => e.ListeningImage)
+                    .HasMaxLength(255)
+                    .HasColumnName("listening_image");
+                entity.Property(e => e.ExamCourseId).HasColumnName("exam_course_id");
+
+                entity.HasOne(d => d.ExamCourse).WithMany()
+                    .HasForeignKey(d => d.ExamCourseId)
+                    .HasConstraintName("FK__ListeninE__exam___4E88ABD4");
             });
 
             modelBuilder.Entity<MentorPackage>(entity =>
@@ -244,6 +264,18 @@ namespace WebRtcApi.Data
                 entity.Property(e => e.OptionD)
                     .HasMaxLength(500)
                     .HasColumnName("option_d");
+                entity.Property(e => e.OptionE)
+                    .HasMaxLength(500)
+                    .HasColumnName("option_e");
+                entity.Property(e => e.OptionF)
+                    .HasMaxLength(500)
+                    .HasColumnName("option_f");
+                entity.Property(e => e.OptionG)
+                    .HasMaxLength(500)
+                    .HasColumnName("option_g");
+                entity.Property(e => e.OptionH)
+                    .HasMaxLength(500)
+                    .HasColumnName("option_h");
                 entity.Property(e => e.QuestionText).HasColumnName("question_text");
 
                 entity.HasOne(d => d.ExamSet).WithMany(p => p.ReadingExams)
@@ -267,6 +299,15 @@ namespace WebRtcApi.Data
                     .HasMaxLength(200)
                     .HasColumnName("exam_set_title");
                 entity.Property(e => e.TotalQuestions).HasColumnName("total_questions");
+                entity.Property(e => e.ReadingContext).HasColumnName("reading_context");
+                entity.Property(e => e.ReadingImage)
+                    .HasMaxLength(255)
+                    .HasColumnName("reading_image");
+                entity.Property(e => e.ExamCourseId).HasColumnName("exam_course_id");
+
+                entity.HasOne(d => d.ExamCourse).WithMany()
+                    .HasForeignKey(d => d.ExamCourseId)
+                    .HasConstraintName("FK__ReadingEx__exam___4AB81AF0");
             });
 
             modelBuilder.Entity<SpeakingExam>(entity =>
@@ -309,40 +350,56 @@ namespace WebRtcApi.Data
                 entity.HasKey(e => e.SubmissionId).HasName("PK__Submissi__9B535595A47119B8");
 
                 entity.Property(e => e.SubmissionId).HasColumnName("submission_id");
-                entity.Property(e => e.AiScore)
-                    .HasColumnType("decimal(4, 2)")
-                    .HasColumnName("ai_score");
-                entity.Property(e => e.AnswerAudioUrl)
-                    .HasMaxLength(255)
-                    .HasColumnName("answer_audio_url");
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.ExamCourseId).HasColumnName("exam_course_id");
+                entity.Property(e => e.ExamType)
+                    .HasMaxLength(20)
+                    .HasColumnName("exam_type");
+                entity.Property(e => e.ExamId).HasColumnName("exam_id");
+                entity.Property(e => e.Answers).HasColumnName("answers");
+                entity.Property(e => e.AnswerText).HasColumnName("answer_text");
                 entity.Property(e => e.AnswerChoice)
                     .HasMaxLength(5)
                     .HasColumnName("answer_choice");
                 entity.Property(e => e.AnswerFill)
                     .HasMaxLength(500)
                     .HasColumnName("answer_fill");
-                entity.Property(e => e.AnswerText).HasColumnName("answer_text");
-                
-                entity.Property(e => e.MentorScore)
-                    .HasColumnType("decimal(4, 2)")
-                    .HasColumnName("mentor_score");
-               
-                entity.Property(e => e.Status)
-                    .HasMaxLength(20)
-                    .HasDefaultValue("Pending")
-                    .HasColumnName("status");
+                entity.Property(e => e.AnswerAudioUrl)
+                    .HasMaxLength(255)
+                    .HasColumnName("answer_audio_url");
+                entity.Property(e => e.TotalWordCount).HasColumnName("total_word_count");
+                entity.Property(e => e.TimeSpent).HasColumnName("time_spent");
                 entity.Property(e => e.SubmittedAt)
                     .HasDefaultValueSql("(getdate())")
                     .HasColumnType("datetime")
                     .HasColumnName("submitted_at");
-                entity.Property(e => e.UserId).HasColumnName("user_id");
-               
+                entity.Property(e => e.AiScore)
+                    .HasColumnType("decimal(4, 2)")
+                    .HasColumnName("ai_score");
+                entity.Property(e => e.MentorScore)
+                    .HasColumnType("decimal(4, 2)")
+                    .HasColumnName("mentor_score");
+                entity.Property(e => e.AiTaskAchievementScore).HasColumnName("ai_task_achievement_score");
+                entity.Property(e => e.AiTaskAchievementFeedback).HasColumnName("ai_task_achievement_feedback");
+                entity.Property(e => e.AiCoherenceCohesionScore).HasColumnName("ai_coherence_cohesion_score");
+                entity.Property(e => e.AiCoherenceCohesionFeedback).HasColumnName("ai_coherence_cohesion_feedback");
+                entity.Property(e => e.AiLexicalResourceScore).HasColumnName("ai_lexical_resource_score");
+                entity.Property(e => e.AiLexicalResourceFeedback).HasColumnName("ai_lexical_resource_feedback");
+                entity.Property(e => e.AiGrammaticalRangeScore).HasColumnName("ai_grammatical_range_score");
+                entity.Property(e => e.AiGrammaticalRangeFeedback).HasColumnName("ai_grammatical_range_feedback");
+                entity.Property(e => e.AiGeneralFeedback).HasColumnName("ai_general_feedback");
+                entity.Property(e => e.Status)
+                    .HasMaxLength(20)
+                    .HasDefaultValue("Pending")
+                    .HasColumnName("status");
 
                 entity.HasOne(d => d.User).WithMany(p => p.Submissions)
                     .HasForeignKey(d => d.UserId)
                     .HasConstraintName("FK__Submissio__user___59063A47");
 
-                
+                entity.HasOne(d => d.ExamCourse).WithMany()
+                    .HasForeignKey(d => d.ExamCourseId)
+                    .HasConstraintName("FK__Submissio__exam___5AEE82B9");
             });
 
             modelBuilder.Entity<Tip>(entity =>

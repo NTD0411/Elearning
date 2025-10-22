@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 interface ExamCourse {
   examCourseId: number;
@@ -11,10 +12,16 @@ interface ExamCourse {
   description: string;
   examType: string;
   createdAt: string;
+  readingExamSetsCount?: number;
+  writingExamSetsCount?: number;
+  listeningExamSetsCount?: number;
+  speakingExamSetsCount?: number;
+  totalExamSets?: number;
 }
 
 export default function CourseDetailPage() {
   const params = useParams();
+  const { data: session } = useSession();
   const [course, setCourse] = useState<ExamCourse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -141,13 +148,43 @@ export default function CourseDetailPage() {
                       <p className="text-sm font-medium text-gray-500">Created Date</p>
                       <p className="text-gray-900">{new Date(course.createdAt).toLocaleDateString()}</p>
                     </div>
+                    {course.totalExamSets && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Total Practice Sets</p>
+                        <p className="text-gray-900">{course.totalExamSets}</p>
+                      </div>
+                    )}
+                    {course.examType.toLowerCase() === 'reading' && course.readingExamSetsCount && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Reading Sets</p>
+                        <p className="text-gray-900">{course.readingExamSetsCount}</p>
+                      </div>
+                    )}
+                    {course.examType.toLowerCase() === 'listening' && course.listeningExamSetsCount && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Listening Sets</p>
+                        <p className="text-gray-900">{course.listeningExamSetsCount}</p>
+                      </div>
+                    )}
+                    {course.examType.toLowerCase() === 'speaking' && course.speakingExamSetsCount && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Speaking Sets</p>
+                        <p className="text-gray-900">{course.speakingExamSetsCount}</p>
+                      </div>
+                    )}
+                    {course.examType.toLowerCase() === 'writing' && course.writingExamSetsCount && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Writing Sets</p>
+                        <p className="text-gray-900">{course.writingExamSetsCount}</p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-6 pt-6 border-t border-gray-200">
                     <h4 className="text-md font-semibold text-gray-900 mb-3">Quick Actions</h4>
                     <div className="space-y-2">
                       <Link
-                        href={`/exam/${course.examType.toLowerCase()}?courseId=${course.examCourseId}`}
+                        href={`/exam/${course.examType.toLowerCase()}?examSetId=${course.examCourseId}&userId=${session?.user?.id || 1}`}
                         className={`block w-full text-white text-center py-2 px-4 rounded transition-colors ${
                           course.examType.toLowerCase() === 'speaking' ? 'bg-green-600 hover:bg-green-700' :
                           course.examType.toLowerCase() === 'writing' ? 'bg-blue-600 hover:bg-blue-700' :
