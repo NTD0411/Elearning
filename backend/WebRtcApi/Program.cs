@@ -7,6 +7,7 @@ using WebRtcApi.Data;
 using WebRtcApi.Repositories.Auths;
 using WebRtcApi.Repositories.Users;
 using WebRtcApi.Repositories.Exams;
+using WebRtcApi.Repositories.MentorPackages;
 using WebRtcApi.Services.Mail;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -62,6 +63,7 @@ builder.Services.AddScoped<IReadingExamRepository, ReadingExamRepository>();
 builder.Services.AddScoped<IListeningExamRepository, ListeningExamRepository>();
 builder.Services.AddScoped<ISpeakingExamRepository, SpeakingExamRepository>();
 builder.Services.AddScoped<IWritingExamRepository, WritingExamRepository>();
+builder.Services.AddScoped<IMentorPackageRepository, MentorPackageRepository>();
 builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddScoped<WebRtcApi.Services.AIWritingScoringService>();
 builder.Services.AddMemoryCache();

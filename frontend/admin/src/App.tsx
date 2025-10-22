@@ -25,6 +25,10 @@ import EditExamSet from "./pages/ExamSets/EditExamSet";
 import CreateExamCourse from "./pages/ExamCourses/CreateExamCourse";
 import ViewExamCourses from "./pages/ExamCourses/ViewExamCourses";
 import ExamCourseDetail from "./pages/ExamCourses/ExamCourseDetail";
+import ViewMentorPackages from "./pages/MentorPackages/ViewMentorPackages";
+import CreateMentorPackage from "./pages/MentorPackages/CreateMentorPackage";
+import EditMentorPackage from "./pages/MentorPackages/EditMentorPackage";
+import MentorPackageDetail from "./pages/MentorPackages/MentorPackageDetail";
 import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
@@ -62,6 +66,10 @@ export default function App() {
             <Route path="exam-courses/create" element={<CreateExamCourse />} />
             <Route path="exam-courses/view" element={<ViewExamCourses />} />
             <Route path="exam-courses/:id" element={<ExamCourseDetail />} />
+            <Route path="mentor-packages" element={<ViewMentorPackages />} />
+            <Route path="mentor-packages/create" element={<CreateMentorPackage />} />
+            <Route path="mentor-packages/:id" element={<MentorPackageDetail />} />
+            <Route path="mentor-packages/edit/:id" element={<EditMentorPackage />} />
             <Route path="students" element={<StudentsManagement />} />
             <Route path="mentors" element={<MentorsManagement />} />
             <Route path="mentor-requests" element={<MentorRequests />} />

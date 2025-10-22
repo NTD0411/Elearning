@@ -4,6 +4,7 @@ export const getHeaderData = (role?: string): HeaderItem[] => {
   const commonItems: HeaderItem[] = [
     { label: "Home", href: "/" },
     { label: "Courses", href: "/courses" },
+    { label: "Packages", href: "/packages" },
   ];
 
   const roleSpecificItems: HeaderItem[] = role === "mentor" 

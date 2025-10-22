@@ -71,6 +71,14 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    name: "Mentor Packages",
+    icon: <BoxCubeIcon />,
+    subItems: [
+      { name: "View Packages", path: "mentor-packages", pro: false },
+      { name: "Create Package", path: "mentor-packages/create", pro: false }
+    ],
+  },
+  {
     name: "Create Question",
     icon: <ListIcon />,
     subItems: [
