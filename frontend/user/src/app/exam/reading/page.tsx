@@ -90,6 +90,10 @@ const ReadingExam: React.FC = () => {
       setLoading(true);
       const response = await fetch(`http://localhost:5074/api/ReadingExam/examset/${examSetId}/questions`);
       if (!response.ok) {
+        if (response.status === 404) {
+          setError('Reading exam set not found. Please choose another set.');
+          return;
+        }
         throw new Error('Failed to load exam questions');
       }
       const data = await response.json();

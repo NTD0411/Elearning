@@ -26,6 +26,24 @@ export default function CourseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const getFirstExamSetId = (c: ExamCourse | null): number | null => {
+    if (!c) return null;
+    const type = c.examType.toLowerCase();
+    // @ts-ignore - arrays are added by API on detail response
+    if (type === 'reading' && Array.isArray((c as any).readingExamSets) && (c as any).readingExamSets.length)
+      return (c as any).readingExamSets[0].examSetId;
+    // @ts-ignore
+    if (type === 'listening' && Array.isArray((c as any).listeningExamSets) && (c as any).listeningExamSets.length)
+      return (c as any).listeningExamSets[0].examSetId;
+    // @ts-ignore
+    if (type === 'speaking' && Array.isArray((c as any).speakingExamSets) && (c as any).speakingExamSets.length)
+      return (c as any).speakingExamSets[0].examSetId;
+    // @ts-ignore
+    if (type === 'writing' && Array.isArray((c as any).writingExamSets) && (c as any).writingExamSets.length)
+      return (c as any).writingExamSets[0].examSetId;
+    return null;
+  };
+
   useEffect(() => {
     const fetchCourse = async () => {
       try {
@@ -43,7 +61,6 @@ export default function CourseDetailPage() {
         setLoading(false);
       }
     };
-
     if (params.id) {
       fetchCourse();
     }
@@ -184,7 +201,7 @@ export default function CourseDetailPage() {
                     <h4 className="text-md font-semibold text-gray-900 mb-3">Quick Actions</h4>
                     <div className="space-y-2">
                       <Link
-                        href={`/exam/${course.examType.toLowerCase()}?examSetId=${course.examCourseId}&userId=${session?.user?.id || 1}`}
+                        href={`/exam/${course.examType.toLowerCase()}?examSetId=${getFirstExamSetId(course) ?? ''}&userId=${session?.user?.id || 1}`}
                         className={`block w-full text-white text-center py-2 px-4 rounded transition-colors ${
                           course.examType.toLowerCase() === 'speaking' ? 'bg-green-600 hover:bg-green-700' :
                           course.examType.toLowerCase() === 'writing' ? 'bg-blue-600 hover:bg-blue-700' :
