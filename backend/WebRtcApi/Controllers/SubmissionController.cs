@@ -34,7 +34,7 @@ public class SubmissionController : ControllerBase
             var submission = new Submission
             {
                 UserId = createDto.UserId,
-                ExamCourseId = 1, // Tạm thời hardcode, sẽ update sau
+                ExamCourseId = createDto.ExamCourseId ?? 1, // Use provided ExamCourseId or default to 1
                 ExamType = createDto.ExamType,
                 ExamId = createDto.ExamId,
                 Answers = createDto.Answers,
@@ -51,7 +51,7 @@ public class SubmissionController : ControllerBase
             // This can be implemented via SignalR hub broadcasting to the student's userId
             // Example (pseudo): await _notificationHub.Clients.User(submission.UserId.ToString()).SendAsync("feedback:new", new { submissionId = id });
 
-            // AI Scoring for Writing submissions
+            // Auto-grading for different exam types
             if (createDto.ExamType?.ToLower() == "writing" && !string.IsNullOrEmpty(createDto.Answers))
             {
                 _logger.LogInformation("Starting AI scoring for writing submission {SubmissionId}", submission.SubmissionId);
@@ -66,6 +66,38 @@ public class SubmissionController : ControllerBase
                 {
                     _logger.LogError(ex, "AI scoring failed for submission {SubmissionId}", submission.SubmissionId);
                     // Continue with submission even if AI scoring fails
+                }
+            }
+            else if (createDto.ExamType?.ToLower() == "reading" && !string.IsNullOrEmpty(createDto.Answers))
+            {
+                _logger.LogInformation("Starting auto-grading for reading submission {SubmissionId}", submission.SubmissionId);
+                try
+                {
+                    await ScoreReadingSubmissionAsync(submission, createDto);
+                    // Refresh submission to get updated scores
+                    await _context.Entry(submission).ReloadAsync();
+                    _logger.LogInformation("Auto-grading completed successfully for submission {SubmissionId}", submission.SubmissionId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Auto-grading failed for submission {SubmissionId}", submission.SubmissionId);
+                    // Continue with submission even if auto-grading fails
+                }
+            }
+            else if (createDto.ExamType?.ToLower() == "listening" && !string.IsNullOrEmpty(createDto.Answers))
+            {
+                _logger.LogInformation("Starting auto-grading for listening submission {SubmissionId}", submission.SubmissionId);
+                try
+                {
+                    await ScoreListeningSubmissionAsync(submission, createDto);
+                    // Refresh submission to get updated scores
+                    await _context.Entry(submission).ReloadAsync();
+                    _logger.LogInformation("Auto-grading completed successfully for submission {SubmissionId}", submission.SubmissionId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Auto-grading failed for submission {SubmissionId}", submission.SubmissionId);
+                    // Continue with submission even if auto-grading fails
                 }
             }
 
@@ -185,10 +217,10 @@ public class SubmissionController : ControllerBase
             }
             else if (submission.ExamType?.ToLower() == "listening" && submission.ExamId.HasValue)
             {
-                var listeningExam = await _context.ListeningExams
-                    .Include(l => l.ExamSet)
-                    .FirstOrDefaultAsync(l => l.ListeningExamId == submission.ExamId);
-                historyDto.ExamTitle = listeningExam?.ExamSet?.ExamSetTitle ?? "Listening Exam";
+                // For listening, ExamId is the ExamSetId
+                var listeningExamSet = await _context.ListeningExamSets
+                    .FirstOrDefaultAsync(l => l.ExamSetId == submission.ExamId);
+                historyDto.ExamTitle = listeningExamSet?.ExamSetTitle ?? "Listening Exam";
             }
             else if (submission.ExamType?.ToLower() == "speaking" && submission.ExamId.HasValue)
             {
@@ -623,6 +655,160 @@ public class SubmissionController : ControllerBase
             return "IELTS Writing Task 2";
         else
             return "IELTS Writing";
+    }
+
+    private async Task ScoreReadingSubmissionAsync(Submission submission, CreateSubmissionDto createDto)
+    {
+        try
+        {
+            _logger.LogInformation("Starting auto-grading for Reading submission {SubmissionId}", submission.SubmissionId);
+
+            if (string.IsNullOrEmpty(createDto.Answers))
+            {
+                _logger.LogWarning("No answers found for Reading submission {SubmissionId}", submission.SubmissionId);
+                return;
+            }
+
+            // Parse student answers
+            var studentAnswers = JsonSerializer.Deserialize<List<StudentAnswer>>(createDto.Answers);
+            if (studentAnswers == null || !studentAnswers.Any())
+            {
+                _logger.LogWarning("Failed to parse answers for Reading submission {SubmissionId}", submission.SubmissionId);
+                return;
+            }
+
+            // Get all reading questions for this exam set
+            var readingQuestions = await _context.ReadingExams
+                .Where(q => q.ExamSetId == submission.ExamId)
+                .ToListAsync();
+
+            if (!readingQuestions.Any())
+            {
+                _logger.LogWarning("No reading questions found for exam set {ExamId}", submission.ExamId);
+                return;
+            }
+
+            // Calculate score
+            int correctAnswers = 0;
+            int totalQuestions = readingQuestions.Count;
+
+            foreach (var question in readingQuestions)
+            {
+                var studentAnswer = studentAnswers.FirstOrDefault(a => a.QuestionId == question.ReadingExamId);
+                if (studentAnswer != null && !string.IsNullOrEmpty(studentAnswer.SelectedAnswer))
+                {
+                    // Compare answers (case-insensitive)
+                    if (studentAnswer.SelectedAnswer.Trim().Equals(question.CorrectAnswer?.Trim(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        correctAnswers++;
+                    }
+                }
+            }
+
+            // Calculate band score (IELTS scale 0-9)
+            // For Reading: typically 40 questions, scaled to 9 band scores
+            double percentage = (double)correctAnswers / totalQuestions;
+            double bandScore = Math.Round(percentage * 9, 1);
+            
+            // Ensure band score is between 0 and 9
+            bandScore = Math.Max(0, Math.Min(9, bandScore));
+
+            // Update submission with score
+            submission.AiScore = (decimal)bandScore;
+            submission.Status = "Graded";
+            submission.AiGeneralFeedback = $"Correct answers: {correctAnswers}/{totalQuestions}";
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Auto-grading completed for Reading submission {SubmissionId}. Score: {Score}/{Total}, Band: {Band}", 
+                submission.SubmissionId, correctAnswers, totalQuestions, bandScore);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during auto-grading for Reading submission {SubmissionId}", submission.SubmissionId);
+            submission.Status = "Grading Failed";
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    private async Task ScoreListeningSubmissionAsync(Submission submission, CreateSubmissionDto createDto)
+    {
+        try
+        {
+            _logger.LogInformation("Starting auto-grading for Listening submission {SubmissionId}", submission.SubmissionId);
+
+            if (string.IsNullOrEmpty(createDto.Answers))
+            {
+                _logger.LogWarning("No answers found for Listening submission {SubmissionId}", submission.SubmissionId);
+                return;
+            }
+
+            // Parse student answers
+            var studentAnswers = JsonSerializer.Deserialize<List<StudentAnswer>>(createDto.Answers);
+            if (studentAnswers == null || !studentAnswers.Any())
+            {
+                _logger.LogWarning("Failed to parse answers for Listening submission {SubmissionId}", submission.SubmissionId);
+                return;
+            }
+
+            // Get all listening questions for this exam set
+            var listeningQuestions = await _context.ListeningExams
+                .Where(q => q.ExamSetId == submission.ExamId)
+                .ToListAsync();
+
+            if (!listeningQuestions.Any())
+            {
+                _logger.LogWarning("No listening questions found for exam set {ExamId}", submission.ExamId);
+                return;
+            }
+
+            // Calculate score
+            int correctAnswers = 0;
+            int totalQuestions = listeningQuestions.Count;
+
+            foreach (var question in listeningQuestions)
+            {
+                var studentAnswer = studentAnswers.FirstOrDefault(a => a.QuestionId == question.ListeningExamId);
+                if (studentAnswer != null && !string.IsNullOrEmpty(studentAnswer.SelectedAnswer))
+                {
+                    // Compare answers (case-insensitive)
+                    if (studentAnswer.SelectedAnswer.Trim().Equals(question.CorrectAnswer?.Trim(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        correctAnswers++;
+                    }
+                }
+            }
+
+            // Calculate band score (IELTS scale 0-9)
+            double percentage = (double)correctAnswers / totalQuestions;
+            double bandScore = Math.Round(percentage * 9, 1);
+            
+            // Ensure band score is between 0 and 9
+            bandScore = Math.Max(0, Math.Min(9, bandScore));
+
+            // Update submission with score
+            submission.AiScore = (decimal)bandScore;
+            submission.Status = "Graded";
+            submission.AiGeneralFeedback = $"Correct answers: {correctAnswers}/{totalQuestions}";
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Auto-grading completed for Listening submission {SubmissionId}. Score: {Score}/{Total}, Band: {Band}", 
+                submission.SubmissionId, correctAnswers, totalQuestions, bandScore);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during auto-grading for Listening submission {SubmissionId}", submission.SubmissionId);
+            submission.Status = "Grading Failed";
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    // Helper class for parsing student answers
+    private class StudentAnswer
+    {
+        public int QuestionId { get; set; }
+        public string? SelectedAnswer { get; set; }
     }
 
     [HttpPost("test-ai-scoring")]

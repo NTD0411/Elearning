@@ -24,11 +24,9 @@ export default function ListeningQuestionForm() {
   const [loading, setLoading] = useState(false);
   const [questionType, setQuestionType] = useState<QuestionType>('multiple-choice');
   const [optionCount, setOptionCount] = useState(4);
-  const [audioUploadType, setAudioUploadType] = useState<'url' | 'file'>('url');
-  const [audioFile, setAudioFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<CreateListeningQuestionDto>({
     examSetId: examSetId ? parseInt(examSetId) : undefined,
-    audioUrl: '',
+    audioUrl: '', // Will be empty, audio comes from exam set
     questionText: '',
     optionA: '',
     optionB: '',
@@ -43,30 +41,11 @@ export default function ListeningQuestionForm() {
     setLoading(true);
     
     try {
-      let finalAudioUrl = formData.audioUrl;
-      
-      // If user selected file upload, upload the file first
-      if (audioUploadType === 'file' && audioFile) {
-        const formDataForUpload = new FormData();
-        formDataForUpload.append('file', audioFile);
-        
-        const uploadResponse = await fetch('http://localhost:5074/api/upload/audio', {
-          method: 'POST',
-          body: formDataForUpload,
-        });
-        
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json();
-          finalAudioUrl = uploadResult.fileUrl; // API returns { fileUrl: "..." }
-        } else {
-          throw new Error('Failed to upload audio file');
-        }
-      }
-      
       // Prepare data based on question type
+      // Audio URL is not needed as it comes from the exam set
       const submitData = { 
         ...formData,
-        audioUrl: finalAudioUrl // Use the uploaded URL or the entered URL
+        audioUrl: '' // Audio is defined at exam set level
       };
       
       if (questionType === 'fill-blank') {
@@ -97,7 +76,7 @@ export default function ListeningQuestionForm() {
 
       if (response.ok) {
         alert('Listening question created successfully!');
-        // Reset form and file upload state
+        // Reset form
         setFormData({
           examSetId: examSetId ? parseInt(examSetId) : undefined,
           audioUrl: '',
@@ -109,8 +88,6 @@ export default function ListeningQuestionForm() {
           answerFill: '',
           correctAnswer: ''
         });
-        setAudioFile(null);
-        setAudioUploadType('url');
       } else {
         const error = await response.text();
         alert(`Error: ${error}`);
@@ -128,34 +105,6 @@ export default function ListeningQuestionForm() {
     setFormData(prev => ({
       ...prev,
       [name]: value
-    }));
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Check if file is audio
-      if (file.type.startsWith('audio/')) {
-        setAudioFile(file);
-        // Create a temporary URL for preview
-        const tempUrl = URL.createObjectURL(file);
-        setFormData(prev => ({
-          ...prev,
-          audioUrl: tempUrl
-        }));
-      } else {
-        alert('Please select an audio file');
-        e.target.value = '';
-      }
-    }
-  };
-
-  const handleUploadTypeChange = (type: 'url' | 'file') => {
-    setAudioUploadType(type);
-    setAudioFile(null);
-    setFormData(prev => ({
-      ...prev,
-      audioUrl: ''
     }));
   };
 
@@ -369,88 +318,7 @@ export default function ListeningQuestionForm() {
             </select>
           )}
           <p className="text-xs text-gray-500 mt-1">
-            Choose which exam set this question belongs to. Questions in the same set can be used together for exams.
-          </p>
-        </div>
-
-        {/* Audio Source */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Audio Source *
-          </label>
-          
-          {/* Upload Type Selection */}
-          <div className="mb-3">
-            <div className="flex space-x-4">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="audioUploadType"
-                  value="url"
-                  checked={audioUploadType === 'url'}
-                  onChange={() => handleUploadTypeChange('url')}
-                  className="mr-2"
-                />
-                URL Link
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="audioUploadType"
-                  value="file"
-                  checked={audioUploadType === 'file'}
-                  onChange={() => handleUploadTypeChange('file')}
-                  className="mr-2"
-                />
-                Upload File
-              </label>
-            </div>
-          </div>
-
-          {/* URL Input */}
-          {audioUploadType === 'url' && (
-            <input
-              type="url"
-              name="audioUrl"
-              value={formData.audioUrl}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              placeholder="https://example.com/audio.mp3"
-            />
-          )}
-
-          {/* File Upload */}
-          {audioUploadType === 'file' && (
-            <div className="space-y-2">
-              <input
-                type="file"
-                accept="audio/*"
-                onChange={handleFileUpload}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              />
-              {audioFile && (
-                <div className="text-sm text-green-600 dark:text-green-400">
-                  ✓ Selected: {audioFile.name} ({(audioFile.size / 1024 / 1024).toFixed(2)} MB)
-                </div>
-              )}
-              {formData.audioUrl && (
-                <div className="mt-2">
-                  <audio controls className="w-full">
-                    <source src={formData.audioUrl} />
-                    Your browser does not support the audio element.
-                  </audio>
-                </div>
-              )}
-            </div>
-          )}
-          
-          <p className="text-xs text-gray-500 mt-1">
-            {audioUploadType === 'url' 
-              ? 'Enter a direct link to an audio file (MP3, WAV, etc.)'
-              : 'Select an audio file from your computer (MP3, WAV, M4A, etc.)'
-            }
+            Choose which exam set this question belongs to. Questions in the same set can be used together for exams. Audio will be taken from the exam set.
           </p>
         </div>
 

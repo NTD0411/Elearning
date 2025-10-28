@@ -32,8 +32,8 @@ public class SubmissionHistoryDto
         : "00:00:00";
     
     public string ScoreFormatted => AiScore.HasValue 
-        ? $"{AiScore:F1}/10" 
+        ? $"Band {AiScore:F1}" 
         : MentorScore.HasValue 
-            ? $"{MentorScore:F1}/10" 
+            ? $"Band {MentorScore:F1}" 
             : "Not Graded";
 }
