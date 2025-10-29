@@ -790,10 +790,35 @@ export default function ExamHistoryPage() {
                         }
                       })()
                     ) : (
-                      // Handle other exam types
+                      // Handle Reading and Listening Exam answers (multiple choice questions)
                       (() => {
                         try {
                           const parsedAnswers = JSON.parse(selectedSubmission.answers);
+                          // Check if it's an array of answers (for Reading/Listening)
+                          if (Array.isArray(parsedAnswers)) {
+                            return (
+                              <div className="space-y-3">
+                                <div className="text-sm text-gray-600 mb-3">
+                                  📝 Total questions answered: {parsedAnswers.length}
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {parsedAnswers.map((answer: any, index: number) => (
+                                    <div key={index} className="bg-white p-3 rounded-lg border">
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-medium text-gray-700">
+                                          Question {index + 1}
+                                        </span>
+                                        <span className="text-sm px-2 py-1 rounded bg-blue-50 text-blue-700 font-medium">
+                                          {answer.selectedAnswer || 'No answer'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          }
+                          // Fallback to formatted JSON
                           return (
                             <pre className="whitespace-pre-wrap text-sm text-gray-700 max-h-60 overflow-y-auto">
                               {JSON.stringify(parsedAnswers, null, 2)}

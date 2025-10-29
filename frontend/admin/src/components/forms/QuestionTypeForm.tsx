@@ -156,24 +156,6 @@ export default function QuestionTypeForm({
         </div>
       )}
 
-      {/* Fill in the blank answer */}
-      {questionType === 'fill-blank' && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Fill Answer *
-          </label>
-          <input
-            type="text"
-            name="answerFill"
-            value={formData.answerFill || ''}
-            onChange={onInputChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            placeholder="Enter the correct answer for fill-in-the-blank"
-          />
-        </div>
-      )}
-
       {/* Correct Answer */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -187,7 +169,7 @@ export default function QuestionTypeForm({
             onChange={onInputChange}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            placeholder="Enter the exact answer text"
+            placeholder="Enter the correct answer for fill-in-the-blank"
           />
         ) : questionType === 'true-false' ? (
           <select

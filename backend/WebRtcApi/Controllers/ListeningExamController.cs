@@ -74,15 +74,25 @@ namespace WebRtcApi.Controllers
         {
             var listeningExams = await _repository.GetByExamSetIdAsync(examSetId);
             
-            // Get the exam set to include image information
+            // Get the exam set to include image and audio information
             var examSet = await _context.ListeningExamSets.FindAsync(examSetId);
+            
+            // Determine audio URL - prioritize exam set audio over question audio
+            string? audioUrl = null;
+            if (!string.IsNullOrEmpty(examSet?.AudioUrl))
+            {
+                // Use exam set audio URL
+                audioUrl = examSet.AudioUrl.StartsWith("http") ? examSet.AudioUrl : $"http://localhost:5074/{examSet.AudioUrl.TrimStart('/')}";
+            }
             
             var result = listeningExams.Select(l => new
             {
                 questionId = l.ListeningExamId,
                 questionText = l.QuestionText,
                 questionOrder = l.ListeningExamId, // Using ID as order for now
-                audioUrl = l.AudioUrl,
+                // Use exam set audio if available, otherwise fall back to question audio (backward compatibility)
+                audioUrl = audioUrl ?? (string.IsNullOrEmpty(l.AudioUrl) ? null : 
+                          (l.AudioUrl.StartsWith("http") ? l.AudioUrl : $"http://localhost:5074/{l.AudioUrl.TrimStart('/')}")),
                 // Include exam set image information
                 listeningImage = examSet?.ListeningImage,
                 options = new[]

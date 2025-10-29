@@ -125,7 +125,149 @@ namespace WebRtcApi.Controllers
             }
         }
 
-        private string GenerateUniqueFileName(string originalFileName)
+        /// <summary>
+        /// Upload audio file for listening questions
+        /// </summary>
+        [HttpPost("audio")]
+        public async Task<ActionResult<UploadResponseDto>> UploadAudio(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest("No file uploaded");
+                }
+
+                // Validate file type
+                var allowedExtensions = new[] { ".mp3", ".wav", ".ogg", ".m4a" };
+                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    return BadRequest("Invalid file type. Only MP3, WAV, OGG, and M4A files are allowed.");
+                }
+
+                // Validate file size (max 20MB)
+                if (file.Length > 20 * 1024 * 1024)
+                {
+                    return BadRequest("File size too large. Maximum size is 20MB.");
+                }
+
+                // Generate unique filename
+                var fileName = GenerateUniqueFileName(file.FileName, "audio");
+                var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "audio");
+                
+                // Create directory if it doesn't exist
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                // Save file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Return the URL path
+                var fileUrl = $"/uploads/audio/{fileName}";
+                
+                _logger.LogInformation($"Audio file uploaded successfully: {fileName}");
+                
+                return Ok(new UploadResponseDto
+                {
+                    Success = true,
+                    FileUrl = fileUrl,
+                    FileName = fileName,
+                    FileSize = file.Length,
+                    Message = "Audio file uploaded successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading audio file");
+                return StatusCode(500, new UploadResponseDto
+                {
+                    Success = false,
+                    Message = "Internal server error while uploading file"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Upload image for reading exam sets
+        /// </summary>
+        [HttpPost("reading-image")]
+        public async Task<ActionResult<UploadResponseDto>> UploadReadingImage(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest("No file uploaded");
+                }
+
+                // Validate file type
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    return BadRequest("Invalid file type. Only JPG, JPEG, PNG, GIF, and WebP files are allowed.");
+                }
+
+                // Validate file size (max 10MB)
+                if (file.Length > 10 * 1024 * 1024)
+                {
+                    return BadRequest("File size too large. Maximum size is 10MB.");
+                }
+
+                // Generate unique filename
+                var fileName = GenerateUniqueFileName(file.FileName, "reading");
+                var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "reading");
+                
+                // Create directory if it doesn't exist
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                // Save file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Return the URL path
+                var fileUrl = $"/uploads/reading/{fileName}";
+                
+                _logger.LogInformation($"Reading image uploaded successfully: {fileName}");
+                
+                return Ok(new UploadResponseDto
+                {
+                    Success = true,
+                    FileUrl = fileUrl,
+                    FileName = fileName,
+                    FileSize = file.Length,
+                    Message = "Reading image uploaded successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading reading image");
+                return StatusCode(500, new UploadResponseDto
+                {
+                    Success = false,
+                    Message = "Internal server error while uploading file"
+                });
+            }
+        }
+
+        private string GenerateUniqueFileName(string originalFileName, string prefix = "profile")
         {
             var extension = Path.GetExtension(originalFileName);
             var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -135,7 +277,7 @@ namespace WebRtcApi.Controllers
                 rng.GetBytes(randomBytes);
             }
             var randomString = Convert.ToHexString(randomBytes).ToLowerInvariant();
-            return $"profile_{timestamp}_{randomString}{extension}";
+            return $"{prefix}_{timestamp}_{randomString}{extension}";
         }
     }
 

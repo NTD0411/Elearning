@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebRtcApi.Data;
 
@@ -11,9 +12,11 @@ using WebRtcApi.Data;
 namespace WebRtcApi.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20251028032035_AddAudioUrlToListeningExamSet")]
+    partial class AddAudioUrlToListeningExamSet
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -214,24 +217,16 @@ namespace WebRtcApi.Migrations
                         .HasColumnName("option_d");
 
                     b.Property<string>("OptionE")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("option_e");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OptionF")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("option_f");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OptionG")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("option_g");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OptionH")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("option_h");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("QuestionText")
                         .HasColumnType("nvarchar(max)")
@@ -264,8 +259,7 @@ namespace WebRtcApi.Migrations
                         .HasDefaultValueSql("(getdate())");
 
                     b.Property<int?>("ExamCourseId")
-                        .HasColumnType("int")
-                        .HasColumnName("exam_course_id");
+                        .HasColumnType("int");
 
                     b.Property<string>("ExamSetCode")
                         .IsRequired()
@@ -280,9 +274,7 @@ namespace WebRtcApi.Migrations
                         .HasColumnName("exam_set_title");
 
                     b.Property<string>("ListeningImage")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("listening_image");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TimeLimit")
                         .HasColumnType("int");
@@ -438,24 +430,16 @@ namespace WebRtcApi.Migrations
                         .HasColumnName("option_d");
 
                     b.Property<string>("OptionE")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("option_e");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OptionF")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("option_f");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OptionG")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("option_g");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OptionH")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("option_h");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("QuestionText")
                         .IsRequired()
@@ -486,8 +470,7 @@ namespace WebRtcApi.Migrations
                         .HasDefaultValueSql("(getdate())");
 
                     b.Property<int?>("ExamCourseId")
-                        .HasColumnType("int")
-                        .HasColumnName("exam_course_id");
+                        .HasColumnType("int");
 
                     b.Property<string>("ExamSetCode")
                         .IsRequired()
@@ -502,13 +485,10 @@ namespace WebRtcApi.Migrations
                         .HasColumnName("exam_set_title");
 
                     b.Property<string>("ReadingContext")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("reading_context");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ReadingImage")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("reading_image");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TotalQuestions")
                         .HasColumnType("int")
@@ -621,44 +601,35 @@ namespace WebRtcApi.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubmissionId"));
 
                     b.Property<string>("AiCoherenceCohesionFeedback")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("ai_coherence_cohesion_feedback");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("AiCoherenceCohesionScore")
-                        .HasColumnType("int")
-                        .HasColumnName("ai_coherence_cohesion_score");
+                        .HasColumnType("int");
 
                     b.Property<string>("AiGeneralFeedback")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("ai_general_feedback");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AiGrammaticalRangeFeedback")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("ai_grammatical_range_feedback");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("AiGrammaticalRangeScore")
-                        .HasColumnType("int")
-                        .HasColumnName("ai_grammatical_range_score");
+                        .HasColumnType("int");
 
                     b.Property<string>("AiLexicalResourceFeedback")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("ai_lexical_resource_feedback");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("AiLexicalResourceScore")
-                        .HasColumnType("int")
-                        .HasColumnName("ai_lexical_resource_score");
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("AiScore")
                         .HasColumnType("decimal(4, 2)")
                         .HasColumnName("ai_score");
 
                     b.Property<string>("AiTaskAchievementFeedback")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("ai_task_achievement_feedback");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("AiTaskAchievementScore")
-                        .HasColumnType("int")
-                        .HasColumnName("ai_task_achievement_score");
+                        .HasColumnType("int");
 
                     b.Property<string>("AnswerAudioUrl")
                         .HasMaxLength(255)
@@ -680,24 +651,16 @@ namespace WebRtcApi.Migrations
                         .HasColumnName("answer_text");
 
                     b.Property<string>("Answers")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("answers");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ExamCourseId")
-                        .HasColumnType("int")
-                        .HasColumnName("exam_course_id");
-
-                    b.Property<int?>("ExamCourseId1")
                         .HasColumnType("int");
 
                     b.Property<int?>("ExamId")
-                        .HasColumnType("int")
-                        .HasColumnName("exam_id");
+                        .HasColumnType("int");
 
                     b.Property<string>("ExamType")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasColumnName("exam_type");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("MentorScore")
                         .HasColumnType("decimal(4, 2)")
@@ -717,12 +680,10 @@ namespace WebRtcApi.Migrations
                         .HasDefaultValueSql("(getdate())");
 
                     b.Property<int?>("TimeSpent")
-                        .HasColumnType("int")
-                        .HasColumnName("time_spent");
+                        .HasColumnType("int");
 
                     b.Property<int?>("TotalWordCount")
-                        .HasColumnType("int")
-                        .HasColumnName("total_word_count");
+                        .HasColumnType("int");
 
                     b.Property<int?>("UserId")
                         .HasColumnType("int")
@@ -732,8 +693,6 @@ namespace WebRtcApi.Migrations
                         .HasName("PK__Submissi__9B535595A47119B8");
 
                     b.HasIndex("ExamCourseId");
-
-                    b.HasIndex("ExamCourseId1");
 
                     b.HasIndex("UserId");
 
@@ -1097,8 +1056,7 @@ namespace WebRtcApi.Migrations
                 {
                     b.HasOne("WebRtcApi.Models.ExamCourse", "ExamCourse")
                         .WithMany()
-                        .HasForeignKey("ExamCourseId")
-                        .HasConstraintName("FK__ListeninE__exam___4E88ABD4");
+                        .HasForeignKey("ExamCourseId");
 
                     b.Navigation("ExamCourse");
                 });
@@ -1144,8 +1102,7 @@ namespace WebRtcApi.Migrations
                 {
                     b.HasOne("WebRtcApi.Models.ExamCourse", "ExamCourse")
                         .WithMany()
-                        .HasForeignKey("ExamCourseId")
-                        .HasConstraintName("FK__ReadingEx__exam___4AB81AF0");
+                        .HasForeignKey("ExamCourseId");
 
                     b.Navigation("ExamCourse");
                 });
@@ -1174,15 +1131,10 @@ namespace WebRtcApi.Migrations
             modelBuilder.Entity("WebRtcApi.Models.Submission", b =>
                 {
                     b.HasOne("WebRtcApi.Models.ExamCourse", "ExamCourse")
-                        .WithMany()
+                        .WithMany("Submissions")
                         .HasForeignKey("ExamCourseId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK__Submissio__exam___5AEE82B9");
-
-                    b.HasOne("WebRtcApi.Models.ExamCourse", null)
-                        .WithMany("Submissions")
-                        .HasForeignKey("ExamCourseId1");
+                        .IsRequired();
 
                     b.HasOne("WebRtcApi.Models.User", "User")
                         .WithMany("Submissions")
