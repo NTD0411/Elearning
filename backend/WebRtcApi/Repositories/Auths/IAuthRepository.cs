@@ -8,6 +8,7 @@ namespace WebRtcApi.Repositories.Auths
     {
         Task<User> RegisterAsync(RegisterDto request);
         Task<TokenResponseDto?> LoginAsync(LoginDto request);
+        Task<TokenResponseDto?> GoogleLoginAsync(GoogleLoginDto request);
         Task<TokenResponseDto?> RefreshTokensAsync(RefreshTokenRequestDto request);
         Task<User?> UpdateProfileAsync(int userId, UpdateProfileDto dto);
         Task<bool> ForgotPasswordAsync(string email);

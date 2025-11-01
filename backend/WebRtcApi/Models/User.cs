@@ -19,6 +19,8 @@ public partial class User
 
     public string? PortraitUrl { get; set; }
 
+    public string? CertificateUrl { get; set; }
+
     public string? Experience { get; set; }
 
     public bool? Approved { get; set; }

@@ -14,6 +14,13 @@ export const apiConfig = {
       approve: (id: number) => `/user/${id}/approve`,
       delete: (id: number) => `/user/${id}`,
     },
+    packages: {
+      list: '/package',
+      getById: (id: number) => `/package/${id}`,
+      create: '/package',
+      update: (id: number) => `/package/${id}`,
+      delete: (id: number) => `/package/${id}`,
+    },
     mentor: {
       management: '/mentor/management',
       ban: (id: number) => `/mentor/${id}/ban`,

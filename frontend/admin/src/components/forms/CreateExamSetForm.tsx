@@ -28,6 +28,8 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
   const [formData, setFormData] = useState<CreateExamSetDto>({
     examSetTitle: '',
     examSetCode: '',
@@ -100,6 +102,13 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
     }
   };
 
+  const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAudioFile(file);
+    }
+  };
+
   const uploadImage = async (): Promise<string | null> => {
     if (!imageFile) return null;
     
@@ -108,14 +117,14 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
       const formData = new FormData();
       formData.append('file', imageFile);
       
-      const response = await fetch('http://localhost:5074/api/Upload/image', {
+      const response = await fetch('http://localhost:5074/api/Upload/reading-image', {
         method: 'POST',
         body: formData,
       });
       
       if (response.ok) {
         const result = await response.json();
-        return result.url;
+        return result.fileUrl;
       } else {
         throw new Error('Failed to upload image');
       }
@@ -125,6 +134,34 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
       return null;
     } finally {
       setUploadingImage(false);
+    }
+  };
+
+  const uploadAudio = async (): Promise<string | null> => {
+    if (!audioFile) return null;
+    
+    setUploadingAudio(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', audioFile);
+      
+      const response = await fetch('http://localhost:5074/api/Upload/audio', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        return result.fileUrl;
+      } else {
+        throw new Error('Failed to upload audio');
+      }
+    } catch (error) {
+      console.error('Error uploading audio:', error);
+      alert('Failed to upload audio');
+      return null;
+    } finally {
+      setUploadingAudio(false);
     }
   };
 
@@ -138,6 +175,12 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
       if ((selectedType === 'reading' || selectedType === 'listening') && imageFile) {
         imageUrl = await uploadImage() || '';
       }
+
+      // Upload audio if audio is selected (for listening)
+      let audioUrl = '';
+      if (selectedType === 'listening' && audioFile) {
+        audioUrl = await uploadAudio() || '';
+      }
       
       const requestBody = {
         title: formData.examSetTitle,
@@ -147,7 +190,8 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
           readingImage: imageUrl
         }),
         ...(selectedType === 'listening' && {
-          listeningImage: imageUrl
+          listeningImage: imageUrl,
+          audioUrl: audioUrl
         })
       };
       
@@ -351,6 +395,43 @@ export default function CreateExamSetForm({ examType = 'reading' }: CreateExamSe
             </div>
             <p className="text-xs text-gray-500 mt-1">
               Optional image to accompany the listening material (e.g., maps, diagrams, visual aids).
+            </p>
+          </div>
+        )}
+
+        {/* Listening Audio - Only show for listening exam type */}
+        {selectedType === 'listening' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Listening Audio (Optional)
+            </label>
+            <div className="space-y-3">
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={handleAudioChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+              {audioFile && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    Selected: {audioFile.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAudioFile(null)}
+                    className="text-red-500 hover:text-red-600 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+              {uploadingAudio && (
+                <p className="text-blue-600 text-sm">Uploading audio...</p>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Audio file for all questions in this exam set. Questions will share this audio.
             </p>
           </div>
         )}

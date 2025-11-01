@@ -199,6 +199,7 @@ namespace WebRtcApi.Controllers
                     description = "",
                     targetQuestions = l.TotalQuestions,
                     listeningImage = l.ListeningImage,
+                    timeLimit = l.TimeLimit,
                     questionCount = _context.ListeningExams.Count(e => e.ExamSetId == l.ExamSetId),
                     createdAt = l.CreatedAt,
                     type = "Listening"
@@ -268,6 +269,7 @@ namespace WebRtcApi.Controllers
                 ExamSetTitle = request.Title,
                 TotalQuestions = request.TargetQuestions,
                 ListeningImage = request.ListeningImage,
+                AudioUrl = request.AudioUrl,
                 CreatedAt = DateTime.Now
             };
 
@@ -473,6 +475,7 @@ namespace WebRtcApi.Controllers
         public string? ReadingContext { get; set; }
         public string? ReadingImage { get; set; }
         public string? ListeningImage { get; set; }
+        public string? AudioUrl { get; set; }
     }
 
     public class UpdateExamSetRequest

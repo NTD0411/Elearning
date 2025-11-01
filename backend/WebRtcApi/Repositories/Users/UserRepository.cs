@@ -75,6 +75,7 @@ namespace WebRtcApi.Repositories.Users
                     Role = u.Role,
                     Status = u.Status,
                     PortraitUrl = u.PortraitUrl,
+                    CertificateUrl = u.CertificateUrl,
                     Experience = u.Experience,
                     Approved = u.Approved,
                     Gender = u.Gender,
@@ -111,6 +112,7 @@ namespace WebRtcApi.Repositories.Users
                     Role = u.Role,
                     Status = u.Status,
                     PortraitUrl = u.PortraitUrl,
+                    CertificateUrl = u.CertificateUrl,
                     Experience = u.Experience,
                     Approved = u.Approved,
                     Gender = u.Gender,
@@ -135,6 +137,7 @@ namespace WebRtcApi.Repositories.Users
                     Role = u.Role,
                     Status = u.Status,
                     PortraitUrl = u.PortraitUrl,
+                    CertificateUrl = u.CertificateUrl,
                     Experience = u.Experience,
                     Approved = u.Approved,
                     Gender = u.Gender,
@@ -159,6 +162,7 @@ namespace WebRtcApi.Repositories.Users
                     Role = u.Role,
                     Status = u.Status,
                     PortraitUrl = u.PortraitUrl,
+                    CertificateUrl = u.CertificateUrl,
                     Experience = u.Experience,
                     Approved = u.Approved,
                     Gender = u.Gender,
@@ -296,6 +300,77 @@ namespace WebRtcApi.Repositories.Users
             if (user == null || user.Role != "mentor") return false;
 
             user.Status = statusUpdate.Status;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // Mentor Request Flow
+        public async Task<bool> CreateMentorRequestAsync(int userId, string certificateUrl, string experience)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return false;
+
+            // Keep existing PortraitUrl unchanged, only update CertificateUrl
+            user.CertificateUrl = certificateUrl;  // Store certificate separately from portrait
+            user.Experience = experience;
+            user.Status = "Pending";
+            user.Approved = false;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<UserListDto>> GetPendingMentorRequestsAsync()
+        {
+            return await _context.Users
+                .Where(u => u.Role == "student" && (u.Status == "Pending" || u.Approved == false) && u.Experience != null)
+                .Select(u => new UserListDto
+                {
+                    UserId = u.UserId,
+                    FullName = u.FullName,
+                    Email = u.Email,
+                    Role = u.Role,
+                    Status = u.Status,
+                    PortraitUrl = u.PortraitUrl,
+                    CertificateUrl = u.CertificateUrl,
+                    Experience = u.Experience,
+                    Approved = u.Approved,
+                    Gender = u.Gender,
+                    Address = u.Address,
+                    DateOfBirth = u.DateOfBirth != default(DateOnly) ? u.DateOfBirth.ToDateTime(TimeOnly.MinValue) : null,
+                    CreatedAt = u.CreatedAt,
+                    UpdatedAt = u.UpdatedAt
+                })
+                .OrderByDescending(u => u.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<bool> ApproveMentorRequestAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return false;
+
+            user.Role = "mentor";
+            user.Status = "Active";
+            user.Approved = true;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> RejectMentorRequestAsync(int userId, string reason)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return false;
+
+            // Keep role student, mark status and store reason in Experience for traceability
+            user.Status = "Rejected";
+            user.Approved = false;
+            user.Experience = string.IsNullOrWhiteSpace(reason) ? user.Experience : $"[Rejected Reason] {reason}\n{user.Experience}";
             user.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

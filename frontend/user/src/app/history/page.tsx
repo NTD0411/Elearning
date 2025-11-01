@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import FeedbackView from '@/components/Feedback/FeedbackView';
 
 interface SubmissionHistory {
   submissionId: number;
@@ -43,6 +44,8 @@ export default function ExamHistoryPage() {
   const [selectedExamType, setSelectedExamType] = useState<string>('all');
   const [selectedSubmission, setSelectedSubmission] = useState<SubmissionHistory | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [selectedSubmissionForFeedback, setSelectedSubmissionForFeedback] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -87,6 +90,36 @@ export default function ExamHistoryPage() {
     fetchHistory();
   }, [session, status]);
 
+  // Auto-refresh when DB changes: periodic polling and on focus/visibility change
+  useEffect(() => {
+    if (status !== 'authenticated' || !session?.user?.id) return;
+
+    let timer: any;
+    const doFetch = async () => {
+      try {
+        const response = await fetch(`http://localhost:5074/api/Submission/user/${session.user.id}/history`, { cache: 'no-store' });
+        if (!response.ok) return;
+        const historyData = await response.json();
+        setSubmissions(historyData);
+      } catch {}
+    };
+
+    // Poll every 20s
+    timer = setInterval(doFetch, 20000);
+
+    // Refetch on window focus or when tab becomes visible
+    const onFocus = () => doFetch();
+    const onVisibility = () => { if (document.visibilityState === 'visible') doFetch(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [session, status]);
+
   const filteredSubmissions = submissions.filter(submission => {
     if (selectedExamType === 'all') return true;
     return submission.examType?.toLowerCase() === selectedExamType.toLowerCase();
@@ -119,6 +152,16 @@ export default function ExamHistoryPage() {
   const closeModal = () => {
     setShowModal(false);
     setSelectedSubmission(null);
+  };
+
+  const handleViewFeedback = (submissionId: number) => {
+    setSelectedSubmissionForFeedback(submissionId);
+    setShowFeedbackModal(true);
+  };
+
+  const closeFeedbackModal = () => {
+    setShowFeedbackModal(false);
+    setSelectedSubmissionForFeedback(null);
   };
 
   // Handle escape key to close modal
@@ -364,12 +407,22 @@ export default function ExamHistoryPage() {
                           </div>
                         )}
                       </div>
-                      <button
-                        onClick={() => handleViewDetails(submission)}
-                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
-                      >
-                        View Details
-                      </button>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleViewDetails(submission)}
+                          className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                          View Details
+                        </button>
+                        {submission.mentorScore && (
+                          <button
+                            onClick={() => handleViewFeedback(submission.submissionId)}
+                            className="inline-flex items-center px-3 py-1.5 border border-blue-300 shadow-sm text-xs font-medium rounded text-blue-700 bg-blue-50 hover:bg-blue-100"
+                          >
+                            View Feedback
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </li>
@@ -667,10 +720,35 @@ export default function ExamHistoryPage() {
                         }
                       })()
                     ) : (
-                      // Handle other exam types
+                      // Handle Reading and Listening Exam answers (multiple choice questions)
                       (() => {
                         try {
                           const parsedAnswers = JSON.parse(selectedSubmission.answers);
+                          // Check if it's an array of answers (for Reading/Listening)
+                          if (Array.isArray(parsedAnswers)) {
+                            return (
+                              <div className="space-y-3">
+                                <div className="text-sm text-gray-600 mb-3">
+                                  📝 Total questions answered: {parsedAnswers.length}
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {parsedAnswers.map((answer: any, index: number) => (
+                                    <div key={index} className="bg-white p-3 rounded-lg border">
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-medium text-gray-700">
+                                          Question {index + 1}
+                                        </span>
+                                        <span className="text-sm px-2 py-1 rounded bg-blue-50 text-blue-700 font-medium">
+                                          {answer.selectedAnswer || 'No answer'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          }
+                          // Fallback to formatted JSON
                           return (
                             <pre className="whitespace-pre-wrap text-sm text-gray-700 max-h-60 overflow-y-auto">
                               {JSON.stringify(parsedAnswers, null, 2)}
@@ -712,6 +790,14 @@ export default function ExamHistoryPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Feedback Modal */}
+      {showFeedbackModal && selectedSubmissionForFeedback && (
+        <FeedbackView
+          submissionId={selectedSubmissionForFeedback}
+          onClose={closeFeedbackModal}
+        />
       )}
     </div>
   );

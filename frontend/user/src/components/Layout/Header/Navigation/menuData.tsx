@@ -8,10 +8,14 @@ export const getHeaderData = (role?: string): HeaderItem[] => {
 
   const roleSpecificItems: HeaderItem[] = role === "mentor" 
     ? [{ label: "Grade", href: "/grade" }]
-    : [{ label: "History", href: "/history" }];
+    : [
+        { label: "History", href: "/history" },
+        { label: "Request Mentor", href: "/mentor-request" }
+      ];
 
   const remainingItems: HeaderItem[] = [
-    { label: "Mentor", href: "/#mentor" },
+    { label: "Mentor", href: "/mentor" },
+    { label: "Packages", href: "/packages" },
     { label: "Tips", href: "/tips" },
   ];
 

@@ -422,6 +422,9 @@ namespace WebRtcApi.Data
                 entity.Property(e => e.PortraitUrl)
                     .HasMaxLength(255)
                     .HasColumnName("portrait_url");
+                entity.Property(e => e.CertificateUrl)
+                    .HasMaxLength(255)
+                    .HasColumnName("certificate_url");
                 entity.Property(e => e.Role)
                     .HasMaxLength(20)
                     .HasColumnName("role");

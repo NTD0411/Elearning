@@ -62,6 +62,25 @@ namespace WebRtcApi.Controllers
             return Ok(result); 
         }
 
+        [HttpPost("google-login")]
+        public async Task<ActionResult<TokenResponseDto>> GoogleLogin(GoogleLoginDto request)
+        {
+            try
+            {
+                var result = await authRepository.GoogleLoginAsync(request);
+                if (result is null)
+                {
+                    return BadRequest("Failed to authenticate with Google");
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error: {ex.Message}");
+            }
+        }
+
         [HttpPost("refresh-token")]
         public async Task<ActionResult<RefreshTokenRequestDto>> RefreshToken(RefreshTokenRequestDto request)
         {
@@ -76,7 +95,6 @@ namespace WebRtcApi.Controllers
         [HttpPut("update-profile")]
         public async Task<ActionResult<User>> UpdateProfile([FromBody] UpdateProfileDto dto)
         {
-            // Get user ID from JWT claims
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
             {

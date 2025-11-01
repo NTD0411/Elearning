@@ -41,8 +41,12 @@ const TipsPage = () => {
   const fetchTips = async () => {
     try {
       const data = await getTips();
-      setTips(data);
-      setFilteredTips(data);
+      // Sort tips by createdAt in descending order (newest first)
+      const sortedTips = [...data].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      setTips(sortedTips);
+      setFilteredTips(sortedTips);
     } catch (error) {
       toast.error("Failed to load tips list");
     } finally {
@@ -152,7 +156,7 @@ const TipsPage = () => {
                     </div>
                   </Link>
                   
-                  {isMentor && (
+                  {isMentor && tip.mentor?.id === Number(session?.user?.id) && (
                     <div className="flex justify-end space-x-2 mt-4 border-t pt-4">
                       <Link
                         href={`/tips/${tip.tipId}/edit`}

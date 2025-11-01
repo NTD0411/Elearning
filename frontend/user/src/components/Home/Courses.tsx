@@ -77,25 +77,22 @@ const Courses = () => {
     return acc;
   }, {} as Record<string, ExamCourse[]>);
 
-  // Filter courses based on selected type and search query
-  const filteredCourses = courses.filter(course => {
-    if (!course) return false;
-    
-    // Log for debugging
-    console.log('Course being filtered:', course);
-    console.log('Current search query:', searchQuery);
-    
-    const matchesType = selectedType === "all" || 
-      (course.examType && course.examType.toLowerCase() === selectedType);
-    
-    const titleMatch = course.courseTitle && course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    console.log('Title matches search:', titleMatch);
-    
-    return matchesType && (searchQuery === "" || titleMatch);
-  });
+  // Filter and sort courses based on selected type, search query, and creation date
+  const filteredCourses = courses
+    .filter(course => {
+      if (!course) return false;
+      
+      const matchesType = selectedType === "all" || 
+        (course.examType && course.examType.toLowerCase() === selectedType);
+      
+      const titleMatch = course.courseTitle && course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      return matchesType && (searchQuery === "" || titleMatch);
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); // Sort by createdAt in descending order
 
-  // Log filtered results
-  console.log('Filtered courses:', filteredCourses);
+  // Log filtered and sorted results
+  console.log('Filtered and sorted courses:', filteredCourses);
 
   if (loading) {
     return (

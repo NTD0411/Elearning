@@ -246,6 +246,9 @@ namespace WebRtcApi.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ExamSetId"));
 
+                    b.Property<string>("AudioUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
@@ -269,6 +272,9 @@ namespace WebRtcApi.Migrations
 
                     b.Property<string>("ListeningImage")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TimeLimit")
+                        .HasColumnType("int");
 
                     b.Property<int>("TotalQuestions")
                         .HasColumnType("int")
@@ -739,17 +745,21 @@ namespace WebRtcApi.Migrations
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("amount");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(getdate())");
+
+                    b.Property<long>("OrderCode")
+                        .HasColumnType("bigint");
 
                     b.Property<int?>("PackageId")
                         .HasColumnType("int")
                         .HasColumnName("package_id");
 
                     b.Property<string>("Status")
+                        .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
@@ -787,6 +797,11 @@ namespace WebRtcApi.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false)
                         .HasColumnName("approved");
+
+                    b.Property<string>("CertificateUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnName("certificate_url");
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()

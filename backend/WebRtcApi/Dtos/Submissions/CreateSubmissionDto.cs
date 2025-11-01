@@ -3,6 +3,7 @@ namespace WebRtcApi.Dtos.Submissions;
 public class CreateSubmissionDto
 {
     public int UserId { get; set; }
+    public int? ExamCourseId { get; set; } // ID của course (nếu thi theo course)
     public string ExamType { get; set; } = string.Empty; // "Reading", "Writing", "Listening", "Speaking"
     public int ExamId { get; set; } // ID của exam cụ thể
     public string Answers { get; set; } = string.Empty; // JSON string

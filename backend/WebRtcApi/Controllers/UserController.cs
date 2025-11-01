@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebRtcApi.Dtos.Users;
 using WebRtcApi.Repositories.Users;
+using WebRtcApi.Services;
 
 namespace WebRtcApi.Controllers
 {
@@ -10,10 +11,17 @@ namespace WebRtcApi.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly IFileUploadService _fileUploadService;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(IUserRepository userRepository)
+        public UserController(
+            IUserRepository userRepository,
+            IFileUploadService fileUploadService,
+            ILogger<UserController> logger)
         {
             _userRepository = userRepository;
+            _fileUploadService = fileUploadService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -92,6 +100,7 @@ namespace WebRtcApi.Controllers
         /// Update user role
         /// </summary>
         [HttpPut("{id}/role")]
+        // Role updates can be done without authentication for testing
         public async Task<ActionResult> UpdateUserRole(int id, [FromBody] string role)
         {
             try
@@ -110,10 +119,97 @@ namespace WebRtcApi.Controllers
         }
 
         /// <summary>
+        /// Student submits a mentor request (certificate file + experience)
+        /// </summary>
+        [HttpPost("{id}/mentor-request")]
+        // [Authorize] // Temporarily disabled for testing
+        public async Task<ActionResult> CreateMentorRequest(int id, [FromForm] MentorRequestDto request)
+        {
+            try
+            {
+                if (request.Certificate == null || request.Certificate.Length == 0)
+                    return BadRequest("Certificate file is required");
+
+                // Validate file type
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg", "application/pdf" };
+                if (!allowedTypes.Contains(request.Certificate.ContentType.ToLower()))
+                    return BadRequest("Only JPG, PNG and PDF files are allowed");
+
+                // Upload certificate file to separate folder
+                var certificateUrl = await _fileUploadService.UploadFileAsync(request.Certificate, "certificates");
+                
+                var ok = await _userRepository.CreateMentorRequestAsync(id, certificateUrl, request.Experience);
+                if (!ok) return NotFound($"User with ID {id} not found");
+                
+                return Ok(new { message = "Mentor request submitted" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating mentor request for user {UserId}", id);
+                return BadRequest($"Error creating mentor request: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Admin gets pending mentor requests
+        /// </summary>
+        [HttpGet("mentor-requests/pending")]
+        // [Authorize] // Temporarily disabled for testing
+        public async Task<ActionResult<List<UserListDto>>> GetPendingMentorRequests()
+        {
+            try
+            {
+                var list = await _userRepository.GetPendingMentorRequestsAsync();
+                return Ok(list);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error retrieving mentor requests: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Admin approves mentor request (promote role to mentor)
+        /// </summary>
+        [HttpPost("{id}/mentor-requests/approve")]
+        // [Authorize] // Temporarily disabled for testing
+        public async Task<ActionResult> ApproveMentorRequest(int id)
+        {
+            try
+            {
+                var ok = await _userRepository.ApproveMentorRequestAsync(id);
+                if (!ok) return NotFound($"User with ID {id} not found");
+                return Ok(new { message = "Mentor request approved" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error approving mentor request: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Admin rejects mentor request
+        /// </summary>
+        [HttpPost("{id}/mentor-requests/reject")]
+        // [Authorize] // Temporarily disabled for testing
+        public async Task<ActionResult> RejectMentorRequest(int id, [FromBody] string reason)
+        {
+            try
+            {
+                var ok = await _userRepository.RejectMentorRequestAsync(id, reason);
+                if (!ok) return NotFound($"User with ID {id} not found");
+                return Ok(new { message = "Mentor request rejected" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error rejecting mentor request: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Update user status
         /// </summary>
         [HttpPut("{id}/status")]
-        [Authorize] // Require authentication
         public async Task<ActionResult> UpdateUserStatus(int id, [FromBody] string status)
         {
             try

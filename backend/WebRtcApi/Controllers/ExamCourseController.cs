@@ -464,5 +464,29 @@ namespace WebRtcApi.Controllers
                 throw;
             }
         }
+
+        // GET: api/ExamCourse/{id}/examsets
+        [HttpGet("{id}/examsets")]
+        public async Task<ActionResult<IEnumerable<ExamSetSummaryDto>>> GetExamSetsByCourse(int id)
+        {
+            try
+            {
+                _logger.LogInformation($"Fetching exam sets for course {id}");
+
+                var examCourse = await _context.ExamCourse.FindAsync(id);
+                if (examCourse == null)
+                {
+                    return NotFound($"Exam course with ID {id} not found");
+                }
+
+                var examSets = await GetExamSetsForCourse(id, examCourse.ExamType);
+                return Ok(examSets);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching exam sets for course {id}");
+                return StatusCode(500, new { message = "Internal server error", error = ex.Message });
+            }
+        }
     }
 }

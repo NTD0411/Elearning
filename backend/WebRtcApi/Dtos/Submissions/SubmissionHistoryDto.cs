@@ -17,11 +17,15 @@ public class SubmissionHistoryDto
     public decimal? MentorScore { get; set; }
     public string? Status { get; set; }
     public string? StudentName { get; set; }
+    public int? AssignedMentorId { get; set; }
     
     // Exam details
     public string? ExamTitle { get; set; }
     public string? CourseTitle { get; set; }
     public string? CourseCode { get; set; }
+    
+    // Discussion info
+    public int ReplyCount { get; set; }
     
     // Formatted properties
     public string TimeSpentFormatted => TimeSpent.HasValue 
@@ -29,8 +33,8 @@ public class SubmissionHistoryDto
         : "00:00:00";
     
     public string ScoreFormatted => AiScore.HasValue 
-        ? $"{AiScore:F1}/10" 
+        ? $"Band {AiScore:F1}" 
         : MentorScore.HasValue 
-            ? $"{MentorScore:F1}/10" 
+            ? $"Band {MentorScore:F1}" 
             : "Not Graded";
 }

@@ -21,5 +21,11 @@ namespace WebRtcApi.Repositories.Users
         Task<bool> BanMentorAsync(int userId, string reason, DateTime? banUntil = null);
         Task<bool> UnbanMentorAsync(int userId);
         Task<bool> UpdateMentorStatusAsync(int userId, MentorStatusUpdateDto statusUpdate);
+
+        // Mentor Request Flow
+        Task<bool> CreateMentorRequestAsync(int userId, string certificateUrl, string experience);
+        Task<List<UserListDto>> GetPendingMentorRequestsAsync();
+        Task<bool> ApproveMentorRequestAsync(int userId);
+        Task<bool> RejectMentorRequestAsync(int userId, string reason);
     }
 }
