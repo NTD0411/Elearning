@@ -1,10 +1,48 @@
 import { useEffect, useState } from 'react';
 
+// Certificate Modal Component
+function CertificateModal({ 
+  isOpen, 
+  onClose, 
+  imageUrl 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  imageUrl: string;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+         onClick={onClose}>
+      <div className="bg-white p-4 rounded-lg max-w-4xl max-h-[90vh] overflow-auto"
+           onClick={e => e.stopPropagation()}>
+        <div className="flex justify-end mb-2">
+          <button onClick={onClose}
+                  className="text-gray-500 hover:text-gray-700">
+            ✕
+          </button>
+        </div>
+        <img 
+             src={imageUrl.startsWith('http') ? imageUrl : `http://localhost:5074${imageUrl}`}
+             alt="Certificate" 
+             className="max-w-full max-h-[70vh] object-contain"
+             onError={(e) => {
+               const target = e.target as HTMLImageElement;
+               target.onerror = null;
+               console.error('Error loading certificate:', imageUrl);
+             }} />
+      </div>
+    </div>
+  );
+}
+
 interface UserRequest {
   userId: number;
   fullName: string;
   email: string;
-  portraitUrl?: string; // certificate url reused
+  portraitUrl?: string;
+  certificateUrl?: string;
   experience?: string;
   createdAt?: string;
 }
@@ -13,6 +51,7 @@ export default function MentorRequests() {
   const [items, setItems] = useState<UserRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCertificate, setSelectedCertificate] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -59,13 +98,25 @@ export default function MentorRequests() {
       <h1 className="text-2xl font-bold mb-4">Mentor Requests</h1>
       {loading && <div>Loading...</div>}
       {error && <div className="text-red-600">{error}</div>}
+      
+      {/* Certificate Modal */}
+      <CertificateModal
+        isOpen={!!selectedCertificate}
+        onClose={() => setSelectedCertificate(null)}
+        imageUrl={selectedCertificate || ''}
+      />
       <div className="space-y-4">
         {items.map((u) => (
           <div key={u.userId} className="border rounded p-4">
             <div className="font-semibold">{u.fullName} ({u.email})</div>
-            {u.portraitUrl && (
+            {u.certificateUrl && (
               <div className="mt-2">
-                <a href={u.portraitUrl} target="_blank" className="text-blue-600">Certificate</a>
+                <button
+                  onClick={() => u.certificateUrl && setSelectedCertificate(u.certificateUrl)}
+                  className="text-blue-600 hover:underline cursor-pointer"
+                >
+                  View Certificate
+                </button>
               </div>
             )}
             {u.experience && <p className="mt-2 whitespace-pre-wrap text-sm">{u.experience}</p>}

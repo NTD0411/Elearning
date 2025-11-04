@@ -1,9 +1,14 @@
 import NextAuth, { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import GoogleProvider from 'next-auth/providers/google'
 import { JWT } from 'next-auth/jwt'
 
 const authOptions: NextAuthOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    }),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -69,7 +74,44 @@ const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user: any }) {
+    async signIn({ user, account, profile }) {
+      // Nếu là Google login, cần tạo/update user trong backend
+      if (account?.provider === 'google') {
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/google-login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: user.email,
+              fullName: user.name,
+              googleId: account.providerAccountId,
+              image: user.image,
+            }),
+          });
+
+          if (!response.ok) {
+            console.error('Google login failed:', response.statusText);
+            return false;
+          }
+
+          const data = await response.json();
+          // Lưu thông tin user từ backend vào user object
+          user.id = data.user?.id?.toString() || user.email;
+          user.accessToken = data.accessToken;
+          user.refreshToken = data.refreshToken;
+          user.role = data.user?.role || 'student';
+          user.fullName = data.user?.fullName || user.name;
+          user.portraitUrl = data.user?.portraitUrl || user.image;
+        } catch (error) {
+          console.error('Error in Google login callback:', error);
+          return false;
+        }
+      }
+      return true;
+    },
+    async jwt({ token, user, account }: { token: JWT; user: any; account?: any }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;

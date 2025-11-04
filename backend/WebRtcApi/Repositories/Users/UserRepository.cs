@@ -75,6 +75,7 @@ namespace WebRtcApi.Repositories.Users
                     Role = u.Role,
                     Status = u.Status,
                     PortraitUrl = u.PortraitUrl,
+                    CertificateUrl = u.CertificateUrl,
                     Experience = u.Experience,
                     Approved = u.Approved,
                     Gender = u.Gender,
@@ -111,6 +112,7 @@ namespace WebRtcApi.Repositories.Users
                     Role = u.Role,
                     Status = u.Status,
                     PortraitUrl = u.PortraitUrl,
+                    CertificateUrl = u.CertificateUrl,
                     Experience = u.Experience,
                     Approved = u.Approved,
                     Gender = u.Gender,
@@ -135,6 +137,7 @@ namespace WebRtcApi.Repositories.Users
                     Role = u.Role,
                     Status = u.Status,
                     PortraitUrl = u.PortraitUrl,
+                    CertificateUrl = u.CertificateUrl,
                     Experience = u.Experience,
                     Approved = u.Approved,
                     Gender = u.Gender,
@@ -159,6 +162,7 @@ namespace WebRtcApi.Repositories.Users
                     Role = u.Role,
                     Status = u.Status,
                     PortraitUrl = u.PortraitUrl,
+                    CertificateUrl = u.CertificateUrl,
                     Experience = u.Experience,
                     Approved = u.Approved,
                     Gender = u.Gender,
@@ -308,10 +312,10 @@ namespace WebRtcApi.Repositories.Users
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return false;
 
-            // Save certificate URL to PortraitUrl to reuse existing column and Experience
-            user.PortraitUrl = certificateUrl;
+            // Keep existing PortraitUrl unchanged, only update CertificateUrl
+            user.CertificateUrl = certificateUrl;  // Store certificate separately from portrait
             user.Experience = experience;
-            user.Status = "Pending"; // mark as pending for admin review
+            user.Status = "Pending";
             user.Approved = false;
             user.UpdatedAt = DateTime.UtcNow;
 
@@ -331,6 +335,7 @@ namespace WebRtcApi.Repositories.Users
                     Role = u.Role,
                     Status = u.Status,
                     PortraitUrl = u.PortraitUrl,
+                    CertificateUrl = u.CertificateUrl,
                     Experience = u.Experience,
                     Approved = u.Approved,
                     Gender = u.Gender,

@@ -8,6 +8,7 @@ import {
   PencilIcon,
   SpeakerWaveIcon,
   MagnifyingGlassIcon,
+  AcademicCapIcon,
 } from "@heroicons/react/24/outline";
 
 interface ExamCourse {
@@ -22,21 +23,30 @@ interface ExamCourse {
   listeningExamSetsCount: number;
   speakingExamSetsCount: number;
   totalExamSets: number;
+  targetBand?: string;
 }
 
 const getSkillIcon = (type: string) => {
   switch (type.toLowerCase()) {
     case 'reading':
-      return <BookOpenIcon className="w-6 h-6" />;
+      return <BookOpenIcon className="w-8 h-8" />;
     case 'speaking':
-      return <MicrophoneIcon className="w-6 h-6" />;
+      return <MicrophoneIcon className="w-8 h-8" />;
     case 'writing':
-      return <PencilIcon className="w-6 h-6" />;
+      return <PencilIcon className="w-8 h-8" />;
     case 'listening':
-      return <SpeakerWaveIcon className="w-6 h-6" />;
+      return <SpeakerWaveIcon className="w-8 h-8" />;
     default:
-      return <BookOpenIcon className="w-6 h-6" />;
+      return <BookOpenIcon className="w-8 h-8" />;
   }
+};
+
+const getBandColor = (band: string) => {
+  if (band.includes('8-9')) return 'from-green-500 to-emerald-600';
+  if (band.includes('7-8')) return 'from-blue-500 to-indigo-600';
+  if (band.includes('6-7')) return 'from-yellow-500 to-amber-600';
+  if (band.includes('5-6')) return 'from-orange-500 to-red-500';
+  return 'from-gray-500 to-gray-600';
 };
 
 const Courses = () => {
@@ -44,6 +54,7 @@ const Courses = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedType, setSelectedType] = useState("all");
+  const [selectedBand, setSelectedBand] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -55,7 +66,14 @@ const Courses = () => {
         }
         const data = await response.json();
         console.log("Fetched courses:", data);
-        setCourses(data);
+        
+        // Assign random target bands for demo
+        const coursesWithBands = data.map((course: ExamCourse) => ({
+          ...course,
+          targetBand: ['Band 5-6', 'Band 6-7', 'Band 7-8', 'Band 8-9'][Math.floor(Math.random() * 4)]
+        }));
+        
+        setCourses(coursesWithBands);
       } catch (err) {
         console.error("Error loading courses:", err);
         setError("Failed to load courses. Please try again later.");
@@ -77,25 +95,24 @@ const Courses = () => {
     return acc;
   }, {} as Record<string, ExamCourse[]>);
 
-  // Filter courses based on selected type and search query
-  const filteredCourses = courses.filter(course => {
-    if (!course) return false;
-    
-    // Log for debugging
-    console.log('Course being filtered:', course);
-    console.log('Current search query:', searchQuery);
-    
-    const matchesType = selectedType === "all" || 
-      (course.examType && course.examType.toLowerCase() === selectedType);
-    
-    const titleMatch = course.courseTitle && course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    console.log('Title matches search:', titleMatch);
-    
-    return matchesType && (searchQuery === "" || titleMatch);
-  });
+  // Filter courses
+  const filteredCourses = courses
+    .filter(course => {
+      if (!course) return false;
+      
+      const matchesType = selectedType === "all" || 
+        (course.examType && course.examType.toLowerCase() === selectedType);
+      
+      const matchesBand = selectedBand === "all" || course.targetBand === selectedBand;
+      
+      const titleMatch = course.courseTitle && course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      return matchesType && matchesBand && (searchQuery === "" || titleMatch);
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); // Sort by createdAt in descending order
 
-  // Log filtered results
-  console.log('Filtered courses:', filteredCourses);
+  // Log filtered and sorted results
+  console.log('Filtered and sorted courses:', filteredCourses);
 
   if (loading) {
     return (
@@ -137,7 +154,7 @@ const Courses = () => {
         </div>
 
         {/* Course Type Filter */}
-        <div className="flex flex-wrap justify-center gap-3 mt-8 mb-12">
+        <div className="flex flex-wrap justify-center gap-3 mt-8 mb-8">
           <button
             onClick={() => setSelectedType("all")}
             className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 ${
@@ -163,43 +180,95 @@ const Courses = () => {
           ))}
         </div>
 
+        {/* Band Score Filter */}
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          <button
+            onClick={() => setSelectedBand("all")}
+            className={`px-5 py-2.5 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 text-sm ${
+              selectedBand === "all"
+                ? "bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-lg"
+                : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-300"
+            }`}
+          >
+            <AcademicCapIcon className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+            All Bands
+          </button>
+          {['Band 5-6', 'Band 6-7', 'Band 7-8', 'Band 8-9'].map((band) => (
+            <button
+              key={band}
+              onClick={() => setSelectedBand(band)}
+              className={`px-5 py-2.5 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 text-sm ${
+                selectedBand === band
+                  ? `bg-gradient-to-r ${getBandColor(band)} text-white shadow-lg`
+                  : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-300"
+              }`}
+            >
+              {band}
+            </button>
+          ))}
+        </div>
+
         {/* Course Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredCourses.map((course) => (
             <Link key={course.examCourseId} href={`/courses/${course.examCourseId}`}>
-              <div className="h-full bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-primary/20">
-                <div className="flex items-start space-x-4">
-                  <div className="p-3 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl text-primary transform group-hover:scale-110 transition-transform duration-300">
-                    {getSkillIcon(course.examType)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-xl text-gray-900 group-hover:text-primary truncate">
-                      {course.courseTitle}
-                    </h3>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Code: {course.courseCode}
-                    </p>
+              <div className="h-full bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
+                {/* IELTS Header with Background Image */}
+                <div className="relative h-40 overflow-hidden">
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: "url('/images/ChatGPT Image 19_07_50 4 thg 11, 2025.png')" }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-br from-red-600/90 via-red-500/85 to-red-700/90" />
+                  
+                  {/* Band Badge */}
+                  {course.targetBand && (
+                    <div className="absolute top-3 right-3 z-10">
+                      <div className={`px-3 py-1.5 rounded-full text-white text-xs font-bold shadow-lg bg-gradient-to-r ${getBandColor(course.targetBand)}`}>
+                        <AcademicCapIcon className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+                        {course.targetBand}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Centered Content */}
+                  <div className="relative h-full flex flex-col items-center justify-center text-white p-6">
+                    <div className="mb-3 transform group-hover:scale-110 transition-transform duration-300">
+                      {getSkillIcon(course.examType)}
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs font-semibold tracking-wider uppercase opacity-90">
+                        IELTS Preparation Test
+                      </p>
+                      <p className="text-sm font-medium mt-1 capitalize">
+                        {course.examType}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center px-4 py-2 rounded-lg bg-primary/[.08] text-primary text-sm font-medium">
-                      {getSkillIcon(course.examType)}
-                      <span className="ml-2">{course.examType}</span>
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      {new Date(course.createdAt).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      })}
-                    </span>
-                  </div>
-                  <div className="mt-4 flex items-center text-sm text-gray-500 space-x-4">
-                    <span>{course.totalExamSets} Practice Sets</span>
-                    <span>•</span>
-                    <span>Updated Recently</span>
+
+                {/* Card Body */}
+                <div className="p-6">
+                  <h3 className="font-bold text-xl text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                    {course.courseTitle}
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Code: <span className="font-medium text-gray-700">{course.courseCode}</span>
+                  </p>
+                  
+                  <div className="pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center text-gray-600">
+                        <span className="font-semibold text-primary">{course.totalExamSets}</span>
+                        <span className="ml-1">Practice Sets</span>
+                      </span>
+                      <span className="text-gray-400">
+                        {new Date(course.createdAt).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

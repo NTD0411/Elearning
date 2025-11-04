@@ -1,5 +1,6 @@
 using OpenAI;
 using OpenAI.Chat;
+using System.ClientModel;
 using System.Text.Json;
 
 namespace WebRtcApi.Services
@@ -8,16 +9,24 @@ namespace WebRtcApi.Services
     {
         private readonly OpenAIClient _openAIClient;
         private readonly ILogger<AIWritingScoringService> _logger;
+        private readonly string _modelName;
 
         public AIWritingScoringService(IConfiguration configuration, ILogger<AIWritingScoringService> logger)
         {
-            var apiKey = configuration["OpenAI:ApiKey"];
+            // Use Groq API instead of OpenAI
+            var apiKey = configuration["Groq:ApiKey"];
+            var baseUrl = configuration["Groq:BaseUrl"];
+            _modelName = configuration["Groq:Model"] ?? "llama-3.3-70b-versatile";
+            
             if (string.IsNullOrEmpty(apiKey))
             {
-                throw new ArgumentException("OpenAI API key is required");
+                throw new ArgumentException("Groq API key is required");
             }
             
-            _openAIClient = new OpenAIClient(apiKey);
+            _openAIClient = string.IsNullOrEmpty(baseUrl) 
+                ? new OpenAIClient(new ApiKeyCredential(apiKey))
+                : new OpenAIClient(new ApiKeyCredential(apiKey), new OpenAIClientOptions { Endpoint = new Uri(baseUrl) });
+            
             _logger = logger;
         }
 
@@ -38,8 +47,8 @@ namespace WebRtcApi.Services
                     new UserChatMessage(userPrompt)
                 };
 
-                _logger.LogInformation("Sending request to OpenAI API...");
-                var chatCompletion = await _openAIClient.GetChatClient("gpt-4o-mini")
+                _logger.LogInformation("Sending request to Groq API...");
+                var chatCompletion = await _openAIClient.GetChatClient(_modelName)
                     .CompleteChatAsync(chatMessages, new ChatCompletionOptions
                     {
                         Temperature = 0.3f, // Lower temperature for consistent scoring
@@ -130,29 +139,57 @@ Please score this IELTS writing response according to the 4 criteria.";
         {
             try
             {
-                // Clean the response - remove any markdown formatting
+                // Clean the response - remove any markdown formatting and leading text
                 var cleanResponse = response.Trim();
-                if (cleanResponse.StartsWith("```json"))
+                
+                // Remove leading text before JSON (like "Here is the score for...")
+                var jsonStartIndex = cleanResponse.IndexOf('{');
+                if (jsonStartIndex > 0)
                 {
-                    cleanResponse = cleanResponse.Substring(7);
+                    cleanResponse = cleanResponse.Substring(jsonStartIndex);
                 }
-                if (cleanResponse.EndsWith("```"))
+                
+                // Remove markdown code block markers
+                if (cleanResponse.Contains("```json"))
                 {
-                    cleanResponse = cleanResponse.Substring(0, cleanResponse.Length - 3);
+                    var startIndex = cleanResponse.IndexOf("```json") + 7;
+                    var endIndex = cleanResponse.LastIndexOf("```");
+                    if (endIndex > startIndex)
+                    {
+                        cleanResponse = cleanResponse.Substring(startIndex, endIndex - startIndex).Trim();
+                    }
                 }
+                else if (cleanResponse.Contains("```"))
+                {
+                    // Remove just ``` markers
+                    cleanResponse = cleanResponse.Replace("```", "").Trim();
+                }
+                
+                // If still has leading text, extract JSON between { and }
+                if (!cleanResponse.StartsWith("{"))
+                {
+                    jsonStartIndex = cleanResponse.IndexOf('{');
+                    var jsonEndIndex = cleanResponse.LastIndexOf('}');
+                    if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex)
+                    {
+                        cleanResponse = cleanResponse.Substring(jsonStartIndex, jsonEndIndex - jsonStartIndex + 1);
+                    }
+                }
+
+                _logger.LogInformation("Cleaned JSON response: {CleanResponse}", cleanResponse);
 
                 var scoreData = JsonSerializer.Deserialize<JsonElement>(cleanResponse);
 
                 return new WritingScoreResult
                 {
                     OverallBand = scoreData.GetProperty("overallBand").GetDecimal(),
-                    TaskAchievementScore = scoreData.GetProperty("taskAchievement").GetProperty("score").GetInt32(),
+                    TaskAchievementScore = (int)Math.Round(scoreData.GetProperty("taskAchievement").GetProperty("score").GetDecimal()),
                     TaskAchievementFeedback = scoreData.GetProperty("taskAchievement").GetProperty("feedback").GetString() ?? "",
-                    CoherenceCohesionScore = scoreData.GetProperty("coherenceCohesion").GetProperty("score").GetInt32(),
+                    CoherenceCohesionScore = (int)Math.Round(scoreData.GetProperty("coherenceCohesion").GetProperty("score").GetDecimal()),
                     CoherenceCohesionFeedback = scoreData.GetProperty("coherenceCohesion").GetProperty("feedback").GetString() ?? "",
-                    LexicalResourceScore = scoreData.GetProperty("lexicalResource").GetProperty("score").GetInt32(),
+                    LexicalResourceScore = (int)Math.Round(scoreData.GetProperty("lexicalResource").GetProperty("score").GetDecimal()),
                     LexicalResourceFeedback = scoreData.GetProperty("lexicalResource").GetProperty("feedback").GetString() ?? "",
-                    GrammaticalRangeScore = scoreData.GetProperty("grammaticalRange").GetProperty("score").GetInt32(),
+                    GrammaticalRangeScore = (int)Math.Round(scoreData.GetProperty("grammaticalRange").GetProperty("score").GetDecimal()),
                     GrammaticalRangeFeedback = scoreData.GetProperty("grammaticalRange").GetProperty("feedback").GetString() ?? "",
                     GeneralFeedback = scoreData.GetProperty("generalFeedback").GetString() ?? ""
                 };

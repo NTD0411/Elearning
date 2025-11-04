@@ -13,6 +13,7 @@ interface ExamSet {
   readingContext?: string;
   readingImage?: string;
   listeningImage?: string;
+  audioUrl?: string; // Main audio file for Listening exam set
 }
 
 interface Question {
@@ -361,19 +362,6 @@ export default function ExamSetDetail() {
           </div>
         </div>
 
-        {/* Audio for Listening */}
-        {type === 'listening' && question.audioUrl && (
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Audio:
-            </label>
-            <audio controls className="w-full">
-              <source src={question.audioUrl} />
-              Your browser does not support the audio element.
-            </audio>
-          </div>
-        )}
-
         {/* Content for Reading */}
         {type === 'reading' && question.content && (
           <div className="mb-4">
@@ -607,6 +595,29 @@ export default function ExamSetDetail() {
                       className="max-w-full h-auto rounded-lg"
                       style={{ maxHeight: '400px' }}
                     />
+                  </div>
+                </div>
+              )}
+              
+              {/* Listening Audio - Only show for listening type */}
+              {type === 'listening' && examSet.audioUrl && (
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-black dark:text-white mb-2">
+                    <span className="inline-flex items-center">
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                      </svg>
+                      Listening Audio (for all questions)
+                    </span>
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <audio controls className="w-full">
+                      <source src={examSet.audioUrl} type="audio/mpeg" />
+                      Your browser does not support the audio element.
+                    </audio>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                      Listen to this audio to answer all the questions below.
+                    </p>
                   </div>
                 </div>
               )}

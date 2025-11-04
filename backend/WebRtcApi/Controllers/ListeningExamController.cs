@@ -83,28 +83,27 @@ namespace WebRtcApi.Controllers
             
             var result = listeningExams.Select(l => new
             {
-                questionId = l.ListeningExamId,
+                listeningExamId = l.ListeningExamId,
                 questionText = l.QuestionText,
-                questionOrder = l.ListeningExamId, // Using ID as order for now
-                // Use exam set audio if available, otherwise fall back to question audio (backward compatibility)
+                questionOrder = l.ListeningExamId,
+                // Use exam set audio if available
                 audioUrl = audioUrl ?? (string.IsNullOrEmpty(l.AudioUrl) ? null : 
                           (l.AudioUrl.StartsWith("http") ? l.AudioUrl : $"http://localhost:5074/{l.AudioUrl.TrimStart('/')}")),
-                // Include exam set image information
                 listeningImage = examSet?.ListeningImage,
-                options = new[]
-                {
-                    l.OptionA,
-                    l.OptionB, 
-                    l.OptionC,
-                    l.OptionD,
-                    l.OptionE,
-                    l.OptionF,
-                    l.OptionG,
-                    l.OptionH
-                }.Where(o => !string.IsNullOrEmpty(o)).ToArray(),
+                // Return individual options for frontend
+                optionA = l.OptionA,
+                optionB = l.OptionB, 
+                optionC = l.OptionC,
+                optionD = l.OptionD,
+                optionE = l.OptionE,
+                optionF = l.OptionF,
+                optionG = l.OptionG,
+                optionH = l.OptionH,
                 correctAnswer = l.CorrectAnswer,
-                points = 1 // Default points
-            }).OrderBy(l => l.questionId);
+                answerFill = l.AnswerFill,
+                examSetId = l.ExamSetId,
+                points = 1
+            }).OrderBy(l => l.listeningExamId);
 
             return Ok(result);
         }

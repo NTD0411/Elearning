@@ -41,6 +41,11 @@ export default function MentorDetailPage() {
   const [ratingValue, setRatingValue] = useState(5);
   const [ratingComment, setRatingComment] = useState('');
   const [submittingRating, setSubmittingRating] = useState(false);
+  const [canRate, setCanRate] = useState(false);
+  const [eligibilityChecked, setEligibilityChecked] = useState(false);
+
+  const userRole = (session?.user as any)?.role?.toLowerCase?.();
+  const isStudent = userRole === 'student';
 
   const mentorId = params.id as string;
 
@@ -85,9 +90,43 @@ export default function MentorDetailPage() {
     }
   }, [mentorId]);
 
+  useEffect(() => {
+    const checkEligibility = async () => {
+      if (!isStudent || !session?.user?.id) {
+        setEligibilityChecked(true);
+        setCanRate(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `http://localhost:5074/api/Rating/eligibility?studentId=${session.user.id}&mentorId=${mentorId}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setCanRate(Boolean(data?.canRate));
+        } else {
+          setCanRate(false);
+        }
+      } catch (err) {
+        console.error('Error checking rating eligibility:', err);
+        setCanRate(false);
+      } finally {
+        setEligibilityChecked(true);
+      }
+    };
+
+    checkEligibility();
+  }, [isStudent, session?.user?.id, mentorId]);
+
   const handleSubmitRating = async () => {
     if (!session?.user?.id || status !== 'authenticated') {
       alert('Please login to rate this mentor');
+      return;
+    }
+
+    if (!canRate) {
+      alert('You can only rate mentors who have graded your submissions.');
       return;
     }
 
@@ -128,9 +167,6 @@ export default function MentorDetailPage() {
       setSubmittingRating(false);
     }
   };
-
-  const userRole = (session?.user as any)?.role?.toLowerCase?.();
-  const isStudent = userRole === 'student';
 
   if (loading) {
     return (
@@ -224,13 +260,18 @@ export default function MentorDetailPage() {
                     </div>
                   </div>
                 </div>
-                {isStudent && (
+                {isStudent && eligibilityChecked && canRate && (
                   <button
                     onClick={() => setShowRatingModal(true)}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                   >
                     Rate Mentor
                   </button>
+                )}
+                {isStudent && eligibilityChecked && !canRate && (
+                  <p className="text-sm text-gray-500">
+                    You can only rate mentors who have graded your submissions.
+                  </p>
                 )}
               </div>
             </div>

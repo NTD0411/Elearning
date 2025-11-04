@@ -199,6 +199,7 @@ namespace WebRtcApi.Controllers
                     description = "",
                     targetQuestions = l.TotalQuestions,
                     listeningImage = l.ListeningImage,
+                    audioUrl = l.AudioUrl, // Main audio file for the exam set
                     timeLimit = l.TimeLimit,
                     questionCount = _context.ListeningExams.Count(e => e.ExamSetId == l.ExamSetId),
                     createdAt = l.CreatedAt,

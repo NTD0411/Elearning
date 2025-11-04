@@ -16,14 +16,17 @@ public class SubmissionController : ControllerBase
     private readonly IWebHostEnvironment _environment;
     private readonly AIWritingScoringService _aiScoringService;
     private readonly ILogger<SubmissionController> _logger;
+    private readonly ILearningRoadmapService _roadmapService;
 
     public SubmissionController(DatabaseContext context, IWebHostEnvironment environment, 
-        AIWritingScoringService aiScoringService, ILogger<SubmissionController> logger)
+        AIWritingScoringService aiScoringService, ILogger<SubmissionController> logger,
+        ILearningRoadmapService roadmapService)
     {
         _context = context;
         _environment = environment;
         _aiScoringService = aiScoringService;
         _logger = logger;
+        _roadmapService = roadmapService;
     }
 
     [HttpPost]
@@ -300,7 +303,14 @@ public class SubmissionController : ControllerBase
         {
             // Get all Writing and Speaking submissions that need grading
             var submissions = await _context.Submissions
-                .Where(s => (s.ExamType != null && (s.ExamType.ToLower() == "writing" || s.ExamType.ToLower() == "speaking")))
+                .Where(s =>
+                    s.UserId.HasValue &&
+                    s.ExamType != null &&
+                    (s.ExamType.ToLower() == "writing" || s.ExamType.ToLower() == "speaking") &&
+                    _context.Transactions.Any(t =>
+                        t.UserId == s.UserId &&
+                        t.Status != null &&
+                        t.Status.ToUpper() == Transaction.TransactionStatus.COMPLETED))
                 .Include(s => s.User)
                 .Include(s => s.ExamCourse)
                 .Include(s => s.Feedbacks)
@@ -312,6 +322,12 @@ public class SubmissionController : ControllerBase
 
             foreach (var submission in submissions)
             {
+                var assignedMentorId = submission.Feedbacks
+                    .Where(f => f.MentorId.HasValue)
+                    .Select(f => f.MentorId!.Value)
+                    .Distinct()
+                    .FirstOrDefault();
+
                 var historyDto = new SubmissionHistoryDto
                 {
                     SubmissionId = submission.SubmissionId,
@@ -331,7 +347,8 @@ public class SubmissionController : ControllerBase
                     CourseTitle = submission.ExamCourse?.CourseTitle,
                     CourseCode = submission.ExamCourse?.CourseCode,
                     StudentName = submission.User?.FullName ?? "Unknown Student",
-                    ReplyCount = submission.Feedbacks.SelectMany(f => f.FeedbackReplies).Count()
+                    ReplyCount = submission.Feedbacks.SelectMany(f => f.FeedbackReplies).Count(),
+                    AssignedMentorId = assignedMentorId == 0 ? null : assignedMentorId
                 };
 
                 // Get exam title based on exam type
@@ -367,7 +384,12 @@ public class SubmissionController : ControllerBase
         try
         {
             Console.WriteLine($"Grading submission {id} with mentor ID: {gradeDto.MentorId}");
-            
+
+            if (gradeDto.MentorId <= 0)
+            {
+                return BadRequest("Invalid mentor ID");
+            }
+
             var submission = await _context.Submissions
                 .Include(s => s.Feedbacks)
                 .FirstOrDefaultAsync(s => s.SubmissionId == id);
@@ -377,12 +399,23 @@ public class SubmissionController : ControllerBase
                 return NotFound();
             }
 
+            // Ensure a single mentor owns grading for this submission
+            var existingMentorId = submission.Feedbacks
+                .Where(f => f.MentorId.HasValue)
+                .Select(f => f.MentorId!.Value)
+                .Distinct()
+                .FirstOrDefault();
+
+            if (existingMentorId != 0 && existingMentorId != gradeDto.MentorId)
+            {
+                return Conflict("This submission has already been graded by another mentor.");
+            }
+
             submission.MentorScore = gradeDto.MentorScore;
             submission.Status = gradeDto.Status;
 
             // Check if feedback already exists for this submission
-            var existingFeedback = await _context.Feedbacks
-                .FirstOrDefaultAsync(f => f.SubmissionId == id);
+            var existingFeedback = submission.Feedbacks.FirstOrDefault();
 
             if (existingFeedback != null)
             {
@@ -548,6 +581,19 @@ public class SubmissionController : ControllerBase
             submission.Status = "AI Scored";
 
             await _context.SaveChangesAsync();
+
+            // Update learning roadmap progress
+            if (submission.UserId.HasValue)
+            {
+                try
+                {
+                    await _roadmapService.UpdateProgressAsync(submission.UserId.Value, submission.SubmissionId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to update roadmap progress for submission {SubmissionId}", submission.SubmissionId);
+                }
+            }
 
             _logger.LogInformation("AI scoring completed for submission {SubmissionId}. Overall band: {Band}", 
                 submission.SubmissionId, scoreResult.OverallBand);
@@ -720,6 +766,19 @@ public class SubmissionController : ControllerBase
 
             await _context.SaveChangesAsync();
 
+            // Update learning roadmap progress
+            if (submission.UserId.HasValue)
+            {
+                try
+                {
+                    await _roadmapService.UpdateProgressAsync(submission.UserId.Value, submission.SubmissionId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to update roadmap progress for submission {SubmissionId}", submission.SubmissionId);
+                }
+            }
+
             _logger.LogInformation("Auto-grading completed for Reading submission {SubmissionId}. Score: {Score}/{Total}, Band: {Band}", 
                 submission.SubmissionId, correctAnswers, totalQuestions, bandScore);
         }
@@ -792,6 +851,19 @@ public class SubmissionController : ControllerBase
             submission.AiGeneralFeedback = $"Correct answers: {correctAnswers}/{totalQuestions}";
 
             await _context.SaveChangesAsync();
+
+            // Update learning roadmap progress
+            if (submission.UserId.HasValue)
+            {
+                try
+                {
+                    await _roadmapService.UpdateProgressAsync(submission.UserId.Value, submission.SubmissionId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to update roadmap progress for submission {SubmissionId}", submission.SubmissionId);
+                }
+            }
 
             _logger.LogInformation("Auto-grading completed for Listening submission {SubmissionId}. Score: {Score}/{Total}, Band: {Band}", 
                 submission.SubmissionId, correctAnswers, totalQuestions, bandScore);

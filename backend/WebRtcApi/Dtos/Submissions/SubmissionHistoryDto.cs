@@ -17,6 +17,7 @@ public class SubmissionHistoryDto
     public decimal? MentorScore { get; set; }
     public string? Status { get; set; }
     public string? StudentName { get; set; }
+    public int? AssignedMentorId { get; set; }
     
     // Exam details
     public string? ExamTitle { get; set; }

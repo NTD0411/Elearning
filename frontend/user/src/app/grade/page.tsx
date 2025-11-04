@@ -25,6 +25,7 @@ interface Submission {
   studentName?: string;
   studentEmail?: string;
   replyCount?: number;
+  assignedMentorId?: number;
   
   // AI Detailed Scoring Fields for Writing
   aiTaskAchievementScore?: number;
@@ -506,6 +507,13 @@ export default function GradePage() {
   const [showFeedbackDiscussion, setShowFeedbackDiscussion] = useState(false);
   const [selectedSubmissionForDiscussion, setSelectedSubmissionForDiscussion] = useState<number | null>(null);
 
+  const currentMentorId = Number(session?.user?.id ?? 0);
+
+  const canCurrentMentorModify = (submission: Submission) => {
+    const assignedMentorId = submission.assignedMentorId ?? 0;
+    return assignedMentorId === 0 || assignedMentorId === currentMentorId;
+  };
+
   const fetchSubmissions = async () => {
     try {
       const response = await fetch("http://localhost:5074/api/Submission/mentor", {
@@ -532,6 +540,14 @@ export default function GradePage() {
   const handleViewFeedbackDiscussion = (submissionId: number) => {
     setSelectedSubmissionForDiscussion(submissionId);
     setShowFeedbackDiscussion(true);
+  };
+
+  const handleOpenGradeModal = (submission: Submission) => {
+    if (!canCurrentMentorModify(submission)) {
+      alert("This submission has already been assigned to another mentor.");
+      return;
+    }
+    setSelectedSubmission(submission);
   };
 
   const closeFeedbackDiscussion = () => {
@@ -594,8 +610,12 @@ export default function GradePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {submissions.map((submission) => (
-                  <tr key={submission.submissionId} className="hover:bg-gray-50">
+                {submissions.map((submission) => {
+                  const canModify = canCurrentMentorModify(submission);
+                  const isAssignedToAnother = !canModify && (submission.assignedMentorId ?? 0) !== 0;
+
+                  return (
+                  <tr key={submission.submissionId} className={`hover:bg-gray-50 ${isAssignedToAnother ? "opacity-50" : ""}`}>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       <div>
                         <div className="font-medium">{submission.studentName || 'Unknown Student'}</div>
@@ -639,7 +659,7 @@ export default function GradePage() {
                       {submission.mentorScore ? `Band ${submission.mentorScore}` : '-'}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {submission.mentorScore ? (
+                      {submission.mentorScore && canModify ? (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                           <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -655,12 +675,14 @@ export default function GradePage() {
                             submission.status?.toLowerCase() === 'graded'
                               ? 'text-green-600 hover:text-green-700'
                               : 'text-blue-600 hover:text-blue-700'
-                          }`}
-                          onClick={() => setSelectedSubmission(submission)}
+                          } ${!canModify ? 'cursor-not-allowed opacity-60 hover:text-current' : ''}`}
+                          onClick={() => handleOpenGradeModal(submission)}
+                          disabled={!canModify}
+                          title={!canModify ? 'Assigned to another mentor' : undefined}
                         >
                           {submission.status?.toLowerCase() === 'graded' ? 'Edit Grade' : 'Grade & Review'}
                         </button>
-                        {submission.mentorScore && (
+                        {submission.mentorScore && canModify && (
                           <button
                             onClick={() => handleViewFeedbackDiscussion(submission.submissionId)}
                             className="font-medium text-purple-600 hover:text-purple-700"
@@ -668,10 +690,16 @@ export default function GradePage() {
                             View Discussion
                           </button>
                         )}
+                        {submission.mentorScore && !canModify && (
+                          <span className="text-sm text-gray-400" title="Assigned to another mentor">
+                            View Discussion
+                          </span>
+                        )}
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+                })}
               </tbody>
             </table>
           </div>

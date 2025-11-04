@@ -47,6 +47,11 @@ namespace WebRtcApi.Data
         public virtual DbSet<WritingExamSet> WritingExamSets { get; set; }
         public virtual DbSet<ExamCourse> ExamCourse { get; set; }
         public virtual DbSet<ExamCourseExamSet> ExamCourseExamSets { get; set; }
+        
+        // Learning Roadmap
+        public virtual DbSet<LearningGoal> LearningGoals { get; set; }
+        public virtual DbSet<RoadmapStep> RoadmapSteps { get; set; }
+        public virtual DbSet<RoadmapCourse> RoadmapCourses { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -422,6 +427,9 @@ namespace WebRtcApi.Data
                 entity.Property(e => e.PortraitUrl)
                     .HasMaxLength(255)
                     .HasColumnName("portrait_url");
+                entity.Property(e => e.CertificateUrl)
+                    .HasMaxLength(255)
+                    .HasColumnName("certificate_url");
                 entity.Property(e => e.Role)
                     .HasMaxLength(20)
                     .HasColumnName("role");

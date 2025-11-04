@@ -8,6 +8,7 @@ namespace WebRtcApi.Dtos.Users
         public required string Role { get; set; }
         public string? Status { get; set; }
         public string? PortraitUrl { get; set; }
+        public string? CertificateUrl { get; set; }
         public string? Experience { get; set; }
         public bool? Approved { get; set; }
         public string? Gender { get; set; }

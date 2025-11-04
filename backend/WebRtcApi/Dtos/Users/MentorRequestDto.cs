@@ -1,9 +1,10 @@
+using Microsoft.AspNetCore.Http;
+
 namespace WebRtcApi.Dtos.Users
 {
     public class MentorRequestDto
     {
-        public required string CertificateUrl { get; set; }
+        public required IFormFile Certificate { get; set; }
         public required string Experience { get; set; }
     }
 }
-

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebRtcApi.Data;
@@ -25,6 +26,30 @@ namespace WebRtcApi.Controllers
         {
             try
             {
+                var student = await _context.Users.FirstOrDefaultAsync(u => u.UserId == ratingDto.StudentId);
+                if (student == null || !string.Equals(student.Role, "student", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Forbid("Only students can submit ratings.");
+                }
+
+                var mentor = await _context.Users.FirstOrDefaultAsync(u => u.UserId == ratingDto.MentorId);
+                if (mentor == null || !string.Equals(mentor.Role, "mentor", StringComparison.OrdinalIgnoreCase))
+                {
+                    return BadRequest("Invalid mentor specified.");
+                }
+
+                var hasMentorGradedSubmission = await _context.Feedbacks
+                    .Include(f => f.Submission)
+                    .AnyAsync(f =>
+                        f.MentorId == ratingDto.MentorId &&
+                        f.Submission != null &&
+                        f.Submission.UserId == ratingDto.StudentId);
+
+                if (!hasMentorGradedSubmission)
+                {
+                    return BadRequest("You can only rate mentors who have graded your submissions.");
+                }
+
                 var rating = new Rating
                 {
                     StudentId = ratingDto.StudentId,
@@ -42,6 +67,35 @@ namespace WebRtcApi.Controllers
             catch (Exception ex)
             {
                 return BadRequest($"Error creating rating: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Check if a student is eligible to rate a mentor
+        /// </summary>
+        [HttpGet("eligibility")]
+        public async Task<ActionResult<RatingEligibilityDto>> CheckRatingEligibility([FromQuery] int studentId, [FromQuery] int mentorId)
+        {
+            try
+            {
+                var student = await _context.Users.FirstOrDefaultAsync(u => u.UserId == studentId);
+                if (student == null || !string.Equals(student.Role, "student", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Ok(new RatingEligibilityDto { CanRate = false });
+                }
+
+                var hasMentorGradedSubmission = await _context.Feedbacks
+                    .Include(f => f.Submission)
+                    .AnyAsync(f =>
+                        f.MentorId == mentorId &&
+                        f.Submission != null &&
+                        f.Submission.UserId == studentId);
+
+                return Ok(new RatingEligibilityDto { CanRate = hasMentorGradedSubmission });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error checking rating eligibility: {ex.Message}");
             }
         }
 
@@ -164,6 +218,11 @@ namespace WebRtcApi.Controllers
         public int MentorId { get; set; }
         public double AverageRating { get; set; }
         public int TotalRatings { get; set; }
+    }
+
+    public class RatingEligibilityDto
+    {
+        public bool CanRate { get; set; }
     }
 }
 

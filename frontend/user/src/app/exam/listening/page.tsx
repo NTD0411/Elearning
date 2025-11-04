@@ -41,8 +41,8 @@ export default function ListeningExam() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { data: session } = useSession();
-  const examSetId = searchParams.get('examSetId');
-  const courseId = searchParams.get('courseId');
+  const examSetId = searchParams?.get('examSetId');
+  const courseId = searchParams?.get('courseId');
   
   const [examSet, setExamSet] = useState<ExamSet | null>(null);
   const [questions, setQuestions] = useState<ListeningQuestion[]>([]);
@@ -138,7 +138,33 @@ export default function ListeningExam() {
         if (questionsResponse.ok) {
           const questionsData = await questionsResponse.json();
           console.log(`Fetched ${questionsData.length} questions from exam set ${setId}`);
-          allQuestions.push(...questionsData);
+          
+          // Map backend response to frontend format
+          const mappedQuestions = questionsData.map((q: any) => {
+            // Build options array from optionA, optionB, optionC, optionD
+            const options: string[] = [];
+            if (q.optionA) options.push(q.optionA);
+            if (q.optionB) options.push(q.optionB);
+            if (q.optionC) options.push(q.optionC);
+            if (q.optionD) options.push(q.optionD);
+            if (q.optionE) options.push(q.optionE);
+            if (q.optionF) options.push(q.optionF);
+            if (q.optionG) options.push(q.optionG);
+            if (q.optionH) options.push(q.optionH);
+            
+            return {
+              questionId: q.listeningExamId,
+              questionText: q.questionText,
+              questionOrder: q.questionOrder,
+              audioUrl: q.audioUrl,
+              listeningImage: q.listeningImage,
+              options: options,
+              correctAnswer: q.correctAnswer,
+              points: q.points || 1
+            };
+          });
+          
+          allQuestions.push(...mappedQuestions);
         }
       }
       

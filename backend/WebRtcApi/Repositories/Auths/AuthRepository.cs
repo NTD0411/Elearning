@@ -37,6 +37,50 @@ namespace WebRtcApi.Repositories.Auths
             return await CreateTokenResponse(user);
         }
 
+        public async Task<TokenResponseDto?> GoogleLoginAsync(GoogleLoginDto request)
+        {
+            // Tìm user theo email
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+
+            if (user == null)
+            {
+                // Tạo user mới nếu chưa có
+                user = new User
+                {
+                    Email = request.Email,
+                    FullName = request.FullName,
+                    Role = "student",
+                    Approved = true, // Google users được auto-approve
+                    PortraitUrl = request.Image,
+                    // Tạo password hash ngẫu nhiên cho Google users (sẽ không dùng)
+                    PasswordHash = new PasswordHasher<User>().HashPassword(new User(), Guid.NewGuid().ToString())
+                };
+
+                context.Users.Add(user);
+                await context.SaveChangesAsync();
+            }
+            else
+            {
+                // Update thông tin nếu có thay đổi
+                if (!string.IsNullOrEmpty(request.FullName) && user.FullName != request.FullName)
+                {
+                    user.FullName = request.FullName;
+                }
+                if (!string.IsNullOrEmpty(request.Image) && user.PortraitUrl != request.Image)
+                {
+                    user.PortraitUrl = request.Image;
+                }
+                // Đảm bảo user được approve
+                if (user.Approved == false)
+                {
+                    user.Approved = true;
+                }
+                await context.SaveChangesAsync();
+            }
+
+            return await CreateTokenResponse(user);
+        }
+
         private async Task<TokenResponseDto> CreateTokenResponse(User user)
         {
             return new TokenResponseDto

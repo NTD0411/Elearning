@@ -15,6 +15,30 @@ interface SignUpProps {
 const SignUp = ({ onSwitchToSignIn, onSwitchToOTP }: SignUpProps) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const validatePasswordStrength = (password: string) => {
+    const hasMinLength = password.length >= 8;
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (!hasMinLength) {
+      return "Password must be at least 8 characters long.";
+    }
+    if (!hasUppercase || !hasLowercase) {
+      return "Password must include both uppercase and lowercase letters.";
+    }
+    if (!hasNumber) {
+      return "Password must include at least one number.";
+    }
+    if (!hasSpecialChar) {
+      return "Password must include at least one special character.";
+    }
+
+    return null;
+  };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -22,6 +46,17 @@ const SignUp = ({ onSwitchToSignIn, onSwitchToOTP }: SignUpProps) => {
 
     const data = new FormData(e.currentTarget);
     const value = Object.fromEntries(data.entries());
+
+    const passwordStrengthMessage = validatePasswordStrength(
+      value.password as string
+    );
+    if (passwordStrengthMessage) {
+      setPasswordError(passwordStrengthMessage);
+      toast.error(passwordStrengthMessage);
+      setLoading(false);
+      return;
+    }
+    setPasswordError(null);
 
     // Validate confirm password
     if (value.password !== value.confirmPassword) {
@@ -95,6 +130,9 @@ const SignUp = ({ onSwitchToSignIn, onSwitchToOTP }: SignUpProps) => {
             required
             className="w-full rounded-md border border-black/20 border-solid bg-transparent px-5 py-3 text-base text-black outline-none transition placeholder:text-grey focus:border-primary focus-visible:shadow-none dark:text-white dark:focus:border-primary"
           />
+          {passwordError && (
+            <p className="mt-2 text-sm text-red-500">{passwordError}</p>
+          )}
         </div>
         <div className="mb-[22px]">
           <input

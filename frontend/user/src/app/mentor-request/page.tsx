@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export default function MentorRequestPage() {
   const { data: session, status } = useSession();
-  const [certificateUrl, setCertificateUrl] = useState('');
+  const [certificate, setCertificate] = useState<File | null>(null);
   const [experience, setExperience] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -21,17 +21,18 @@ export default function MentorRequestPage() {
       setError('Please login to submit request.');
       return;
     }
-    if (!certificateUrl || !experience) {
-      setError('Please enter Certificate URL and experience.');
+    if (!certificate || !experience) {
+      setError('Please upload certificate and enter experience.');
       return;
     }
 
     setSubmitting(true);
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
+      const formData = new FormData();
+      formData.append('certificate', certificate);
+      formData.append('experience', experience);
       
+      const headers: Record<string, string> = {};
       // Add authorization header if we have access token
       if ((session as any)?.accessToken) {
         headers['Authorization'] = `Bearer ${(session as any).accessToken}`;
@@ -40,7 +41,7 @@ export default function MentorRequestPage() {
       const res = await fetch(`http://localhost:5074/api/User/${session.user.id}/mentor-request`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ certificateUrl, experience })
+        body: formData
       });
       
       if (!res.ok) {
@@ -98,13 +99,17 @@ export default function MentorRequestPage() {
             <div className="bg-blue-50 border border-blue-200 text-blue-700 rounded p-3">{message}</div>
           )}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Certificate URL</label>
+            <label className="block text-sm font-medium text-gray-700">Certificate</label>
             <input
-              type="url"
-              value={certificateUrl}
-              onChange={(e) => setCertificateUrl(e.target.value)}
-              placeholder="https://..."
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              type="file"
+              onChange={(e) => setCertificate(e.target.files?.[0] || null)}
+              accept="image/*,.pdf"
+              className="mt-1 block w-full text-sm text-slate-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100"
               required
             />
           </div>

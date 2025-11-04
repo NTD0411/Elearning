@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebRtcApi.Dtos.Users;
 using WebRtcApi.Repositories.Users;
+using WebRtcApi.Services;
 
 namespace WebRtcApi.Controllers
 {
@@ -10,10 +11,17 @@ namespace WebRtcApi.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly IFileUploadService _fileUploadService;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(IUserRepository userRepository)
+        public UserController(
+            IUserRepository userRepository,
+            IFileUploadService fileUploadService,
+            ILogger<UserController> logger)
         {
             _userRepository = userRepository;
+            _fileUploadService = fileUploadService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -111,20 +119,33 @@ namespace WebRtcApi.Controllers
         }
 
         /// <summary>
-        /// Student submits a mentor request (certificate url + experience)
+        /// Student submits a mentor request (certificate file + experience)
         /// </summary>
         [HttpPost("{id}/mentor-request")]
         // [Authorize] // Temporarily disabled for testing
-        public async Task<ActionResult> CreateMentorRequest(int id, [FromBody] MentorRequestDto request)
+        public async Task<ActionResult> CreateMentorRequest(int id, [FromForm] MentorRequestDto request)
         {
             try
             {
-                var ok = await _userRepository.CreateMentorRequestAsync(id, request.CertificateUrl, request.Experience);
+                if (request.Certificate == null || request.Certificate.Length == 0)
+                    return BadRequest("Certificate file is required");
+
+                // Validate file type
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg", "application/pdf" };
+                if (!allowedTypes.Contains(request.Certificate.ContentType.ToLower()))
+                    return BadRequest("Only JPG, PNG and PDF files are allowed");
+
+                // Upload certificate file to separate folder
+                var certificateUrl = await _fileUploadService.UploadFileAsync(request.Certificate, "certificates");
+                
+                var ok = await _userRepository.CreateMentorRequestAsync(id, certificateUrl, request.Experience);
                 if (!ok) return NotFound($"User with ID {id} not found");
+                
                 return Ok(new { message = "Mentor request submitted" });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error creating mentor request for user {UserId}", id);
                 return BadRequest($"Error creating mentor request: {ex.Message}");
             }
         }

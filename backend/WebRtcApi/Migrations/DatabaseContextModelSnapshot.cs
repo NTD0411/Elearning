@@ -157,6 +157,67 @@ namespace WebRtcApi.Migrations
                     b.ToTable("FeedbackReplies");
                 });
 
+            modelBuilder.Entity("WebRtcApi.Models.LearningGoal", b =>
+                {
+                    b.Property<int>("LearningGoalId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LearningGoalId"));
+
+                    b.Property<string>("AiGeneratedPlan")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CompletedExams")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("CurrentBand")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FocusSkill")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GoalTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("ProgressPercentage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TargetBand")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TargetDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TotalExamsRequired")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("LearningGoalId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("LearningGoals");
+                });
+
             modelBuilder.Entity("WebRtcApi.Models.ListeningExam", b =>
                 {
                     b.Property<int>("ListeningExamId")
@@ -499,6 +560,102 @@ namespace WebRtcApi.Migrations
                     b.ToTable("ReadingExamSets");
                 });
 
+            modelBuilder.Entity("WebRtcApi.Models.RoadmapCourse", b =>
+                {
+                    b.Property<int>("RoadmapCourseId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoadmapCourseId"));
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExamCourseId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ReasonForRecommendation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RecommendationOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoadmapStepId")
+                        .HasColumnType("int");
+
+                    b.HasKey("RoadmapCourseId");
+
+                    b.HasIndex("ExamCourseId");
+
+                    b.HasIndex("RoadmapStepId");
+
+                    b.ToTable("RoadmapCourses");
+                });
+
+            modelBuilder.Entity("WebRtcApi.Models.RoadmapStep", b =>
+                {
+                    b.Property<int>("RoadmapStepId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoadmapStepId"));
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Difficulty")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ExamsCompleted")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("LearningGoalId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RecommendedExamSets")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ResourceLinks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SkillType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StepOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tips")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("RoadmapStepId");
+
+                    b.HasIndex("LearningGoalId");
+
+                    b.ToTable("RoadmapSteps");
+                });
+
             modelBuilder.Entity("WebRtcApi.Models.SpeakingExam", b =>
                 {
                     b.Property<int>("SpeakingExamId")
@@ -745,17 +902,21 @@ namespace WebRtcApi.Migrations
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("amount");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(getdate())");
+
+                    b.Property<long>("OrderCode")
+                        .HasColumnType("bigint");
 
                     b.Property<int?>("PackageId")
                         .HasColumnType("int")
                         .HasColumnName("package_id");
 
                     b.Property<string>("Status")
+                        .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
@@ -793,6 +954,11 @@ namespace WebRtcApi.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false)
                         .HasColumnName("approved");
+
+                    b.Property<string>("CertificateUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnName("certificate_url");
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -1039,6 +1205,17 @@ namespace WebRtcApi.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("WebRtcApi.Models.LearningGoal", b =>
+                {
+                    b.HasOne("WebRtcApi.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("WebRtcApi.Models.ListeningExam", b =>
                 {
                     b.HasOne("WebRtcApi.Models.ListeningExamSet", "ExamSet")
@@ -1102,6 +1279,36 @@ namespace WebRtcApi.Migrations
                         .HasForeignKey("ExamCourseId");
 
                     b.Navigation("ExamCourse");
+                });
+
+            modelBuilder.Entity("WebRtcApi.Models.RoadmapCourse", b =>
+                {
+                    b.HasOne("WebRtcApi.Models.ExamCourse", "ExamCourse")
+                        .WithMany()
+                        .HasForeignKey("ExamCourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WebRtcApi.Models.RoadmapStep", "RoadmapStep")
+                        .WithMany("RecommendedCourses")
+                        .HasForeignKey("RoadmapStepId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ExamCourse");
+
+                    b.Navigation("RoadmapStep");
+                });
+
+            modelBuilder.Entity("WebRtcApi.Models.RoadmapStep", b =>
+                {
+                    b.HasOne("WebRtcApi.Models.LearningGoal", "LearningGoal")
+                        .WithMany("RoadmapSteps")
+                        .HasForeignKey("LearningGoalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LearningGoal");
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.SpeakingExam", b =>
@@ -1201,6 +1408,11 @@ namespace WebRtcApi.Migrations
                     b.Navigation("FeedbackReplies");
                 });
 
+            modelBuilder.Entity("WebRtcApi.Models.LearningGoal", b =>
+                {
+                    b.Navigation("RoadmapSteps");
+                });
+
             modelBuilder.Entity("WebRtcApi.Models.ListeningExamSet", b =>
                 {
                     b.Navigation("ListeningExams");
@@ -1214,6 +1426,11 @@ namespace WebRtcApi.Migrations
             modelBuilder.Entity("WebRtcApi.Models.ReadingExamSet", b =>
                 {
                     b.Navigation("ReadingExams");
+                });
+
+            modelBuilder.Entity("WebRtcApi.Models.RoadmapStep", b =>
+                {
+                    b.Navigation("RecommendedCourses");
                 });
 
             modelBuilder.Entity("WebRtcApi.Models.SpeakingExamSet", b =>
