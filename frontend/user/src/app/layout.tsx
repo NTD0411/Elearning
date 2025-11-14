@@ -45,7 +45,35 @@ export default function RootLayout({
             <MainContent>{children}</MainContent>
             <Footer />
             <ScrollToTop />
-            <Toaster position="top-right" />
+            <Toaster 
+              position="top-center"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#333',
+                  color: '#fff',
+                  fontSize: '16px',
+                  padding: '16px 20px',
+                  borderRadius: '8px',
+                  zIndex: 99999,
+                },
+                success: {
+                  iconTheme: {
+                    primary: '#4ade80',
+                    secondary: '#fff',
+                  },
+                },
+                error: {
+                  iconTheme: {
+                    primary: '#ef4444',
+                    secondary: '#fff',
+                  },
+                },
+              }}
+              containerStyle={{
+                top: 80,
+              }}
+            />
           </ThemeProvider>
         </AuthProvider>
       </body>

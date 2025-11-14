@@ -34,6 +34,35 @@ const Signin = ({ onSwitchToForgotPassword, onLoginSuccess, onSwitchToSignUp }: 
     setLoading(true);
     
     try {
+      // Call backend API directly to get better error messages
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: loginData.email,
+          passwordHash: loginData.password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Login failed:', response.status, errorText);
+        setLoading(false);
+        
+        // Show specific message for inactive accounts
+        if (response.status === 401) {
+          toast.error(errorText || "Your account is inactive. Please contact administrator.");
+        } else {
+          toast.error(errorText || "Invalid credentials");
+        }
+        return;
+      }
+
+      const data = await response.json();
+      
+      // If backend login successful, use NextAuth to create session
       const result = await signIn("credentials", {
         email: loginData.email,
         password: loginData.password,

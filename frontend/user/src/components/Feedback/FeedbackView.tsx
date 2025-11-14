@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 interface FeedbackDto {
   feedbackId: number;
@@ -43,7 +45,7 @@ export default function FeedbackView({ submissionId, onClose }: FeedbackViewProp
     try {
       const response = await fetch(`http://localhost:5074/api/Submission/feedback/${submissionId}`, {
         headers: {
-          'Authorization': `Bearer ${session?.user?.accessToken}`,
+          'Authorization': `Bearer ${session?.accessToken}`,
         },
       });
 
@@ -61,6 +63,7 @@ export default function FeedbackView({ submissionId, onClose }: FeedbackViewProp
     } catch (err) {
       console.error('Error fetching feedback:', err);
       setError('Failed to load feedback. Please try again.');
+      toast.error('Failed to load feedback. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -79,7 +82,7 @@ export default function FeedbackView({ submissionId, onClose }: FeedbackViewProp
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.user?.accessToken}`,
+          'Authorization': `Bearer ${session?.accessToken}`,
         },
         body: JSON.stringify({
           feedbackId: feedback.feedbackId,
@@ -95,9 +98,10 @@ export default function FeedbackView({ submissionId, onClose }: FeedbackViewProp
       // Refresh feedback to show new reply
       await fetchFeedback();
       setReplyText('');
+      toast.success('Reply submitted successfully');
     } catch (err) {
       console.error('Error submitting reply:', err);
-      alert('Failed to submit reply. Please try again.');
+      toast.error('Failed to submit reply. Please try again.');
     } finally {
       setSubmittingReply(false);
     }

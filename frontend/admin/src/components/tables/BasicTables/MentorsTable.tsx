@@ -9,6 +9,7 @@ import Badge from "../../ui/badge/Badge";
 import { useState, useEffect } from "react";
 import { UserService } from "../../../services/userService";
 import { User } from "../../../types/user";
+import toast from "react-hot-toast";
 
 export default function MentorsTable() {
   const [mentors, setMentors] = useState<User[]>([]);
@@ -29,7 +30,7 @@ export default function MentorsTable() {
       });
       setMentors(response.users);
     } catch (err) {
-      setError('Không thể tải danh sách mentor');
+      setError('Unable to load mentor list');
       console.error('Error fetching mentors:', err);
     } finally {
       setLoading(false);
@@ -51,7 +52,7 @@ export default function MentorsTable() {
       }, 500);
     } catch (err) {
       console.error('Error toggling mentor status:', err);
-      alert('Có lỗi xảy ra khi thay đổi trạng thái mentor');
+      toast.error('An error occurred while changing mentor status');
     }
   };
 
@@ -63,14 +64,14 @@ export default function MentorsTable() {
       fetchMentors();
     } catch (err) {
       console.error('Error toggling mentor approval:', err);
-      alert('Có lỗi xảy ra khi thay đổi trạng thái duyệt mentor');
+      toast.error('An error occurred while changing mentor approval status');
     }
   };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500">Đang tải danh sách mentor...</div>
+        <div className="text-gray-500">Loading mentor list...</div>
       </div>
     );
   }
@@ -107,31 +108,31 @@ export default function MentorsTable() {
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Kinh nghiệm
+                  Experience
                 </TableCell>
                 <TableCell
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Trạng thái duyệt
+                  Approval Status
                 </TableCell>
                 <TableCell
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Trạng thái hoạt động
+                  Activity Status
                 </TableCell>
                 <TableCell
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Ngày tham gia
+                  Join Date
                 </TableCell>
                 <TableCell
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Hành động
+                  Actions
                 </TableCell>
               </TableRow>
             </TableHeader>
@@ -159,7 +160,7 @@ export default function MentorsTable() {
                       </div>
                       <div>
                         <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                          {mentor.fullName || 'Chưa có tên'}
+                          {mentor.fullName || 'No name'}
                         </span>
                         <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
                           ID: {mentor.userId}
@@ -172,7 +173,7 @@ export default function MentorsTable() {
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                     <div className="max-w-xs truncate" title={mentor.experience}>
-                      {mentor.experience || 'Chưa có thông tin'}
+                      {mentor.experience || 'No information'}
                     </div>
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
@@ -180,7 +181,7 @@ export default function MentorsTable() {
                       size="sm"
                       color={mentor.approved ? "success" : "warning"}
                     >
-                      {mentor.approved ? "Đã duyệt" : "Chờ duyệt"}
+                      {mentor.approved ? "Approved" : "Pending"}
                     </Badge>
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
@@ -188,11 +189,11 @@ export default function MentorsTable() {
                       size="sm"
                       color={mentor.status?.toLowerCase() === 'active' ? "success" : "error"}
                     >
-                      {mentor.status?.toLowerCase() === 'active' ? "Hoạt động" : "Bị khóa"}
+                      {mentor.status?.toLowerCase() === 'active' ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                    {mentor.createdAt ? new Date(mentor.createdAt).toLocaleDateString('vi-VN') : 'Chưa rõ'}
+                    {mentor.createdAt ? new Date(mentor.createdAt).toLocaleDateString('vi-VN') : 'Unknown'}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                     <div className="flex gap-2">
@@ -204,7 +205,7 @@ export default function MentorsTable() {
                             : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                         }`}
                       >
-                        {mentor.approved ? 'Hủy duyệt' : 'Duyệt'}
+                        {mentor.approved ? 'Unapprove' : 'Approve'}
                       </button>
                       <button
                         onClick={() => handleToggleStatus(mentor.userId.toString(), mentor.status || '')}
@@ -214,7 +215,7 @@ export default function MentorsTable() {
                           : 'bg-green-100 text-green-700 hover:bg-green-200'
                       }`}
                       >
-                        {mentor.status?.toLowerCase() === 'active' ? 'Khóa' : 'Mở khóa'}
+                        {mentor.status?.toLowerCase() === 'active' ? 'Lock' : 'Unlock'}
                       </button>
                     </div>
                   </TableCell>
@@ -227,7 +228,7 @@ export default function MentorsTable() {
 
       {mentors.length === 0 && (
         <div className="flex justify-center items-center h-32">
-          <div className="text-gray-500">Không có mentor nào</div>
+          <div className="text-gray-500">No mentors found</div>
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import toast from "react-hot-toast";
 
 interface RoadmapCourse {
   roadmapCourseId: number;
@@ -104,7 +105,7 @@ export default function RoadmapPage() {
     e.preventDefault();
     
     if (!accessToken) {
-      alert("Please login first!");
+      toast.error("Please login first!");
       return;
     }
     
@@ -132,15 +133,15 @@ export default function RoadmapPage() {
         setGoal(data.data || data);
         setShowForm(false);
         await fetchActiveGoal(); // Refresh to get full data with relationships
-        alert("Roadmap created successfully!");
+        toast.success("Roadmap created successfully!");
       } else {
         const error = await response.text();
         console.error("Error response:", error);
-        alert(`Failed to create roadmap: ${error}`);
+        toast.error(`Failed to create roadmap: ${error}`);
       }
     } catch (error) {
       console.error("Error creating goal:", error);
-      alert("Failed to create roadmap. Check console for details.");
+      toast.error("Failed to create roadmap. Check console for details.");
     } finally {
       setLoading(false);
     }
@@ -242,7 +243,19 @@ export default function RoadmapPage() {
                 <input 
                   type="date" 
                   value={formData.targetDate}
-                  onChange={(e) => setFormData({...formData, targetDate: e.target.value})}
+                  onChange={(e) => {
+                    const selectedDate = new Date(e.target.value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0); // Reset time to start of day for fair comparison
+                    
+                    if (selectedDate < today) {
+                      toast.error("Please select a future date");
+                      return;
+                    }
+                    
+                    setFormData({...formData, targetDate: e.target.value});
+                  }}
+                  min={new Date().toISOString().split('T')[0]} // Set minimum date to today
                   className="w-full border border-gray-300 rounded-lg px-4 py-2"
                   required
                 />

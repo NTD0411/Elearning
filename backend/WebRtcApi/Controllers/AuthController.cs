@@ -53,13 +53,24 @@ namespace WebRtcApi.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<TokenResponseDto>> Login(LoginDto request)
         {
-            var result = await authRepository.LoginAsync(request);
-            if (result is null)
+            try
             {
-                return BadRequest("Invalid username or password");
-            }
+                var result = await authRepository.LoginAsync(request);
+                if (result is null)
+                {
+                    return BadRequest("Invalid username or password");
+                }
 
-            return Ok(result); 
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error occurred: {ex.Message}");
+            }
         }
 
         [HttpPost("google-login")]
@@ -74,6 +85,10 @@ namespace WebRtcApi.Controllers
                 }
 
                 return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
             }
             catch (Exception ex)
             {

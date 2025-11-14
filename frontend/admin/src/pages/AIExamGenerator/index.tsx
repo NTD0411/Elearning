@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Sparkles, BookOpen, Headphones, PenTool, Mic } from 'lucide-react';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
+import toast from 'react-hot-toast';
 
 interface GeneratorTab {
   id: string;
@@ -93,11 +94,14 @@ const AIExamGenerator: React.FC = () => {
       setResult(data);
       
       if (data.success) {
-        alert(`✅ Reading exam generated successfully!\nExam Set ID: ${data.examSet.examSetId}\nCode: ${data.examSet.examSetCode}`);
+        toast.success(`Reading exam generated successfully!\nExam Set ID: ${data.examSet.examSetId}\nCode: ${data.examSet.examSetCode}`);
+      } else {
+        toast.error('Failed to generate reading exam. Please try again.');
       }
     } catch (error) {
       console.error('Error generating reading exam:', error);
-      alert('❌ Error generating reading exam');
+      toast.error('Failed to generate reading exam. Please try again.');
+      toast.error('Error generating reading exam');
     } finally {
       setLoading(false);
     }
@@ -122,11 +126,11 @@ const AIExamGenerator: React.FC = () => {
       setResult(data);
       
       if (data.success) {
-        alert(`✅ Listening exam generated successfully!\nExam Set ID: ${data.examSet.examSetId}\nCode: ${data.examSet.examSetCode}\n\n⚠️ Don't forget to upload the audio file!`);
+        toast.success(`Listening exam generated successfully!\nExam Set ID: ${data.examSet.examSetId}\nCode: ${data.examSet.examSetCode}\n\nDon't forget to upload the audio file!`, { duration: 5000 });
       }
     } catch (error) {
       console.error('Error generating listening exam:', error);
-      alert('❌ Error generating listening exam');
+      toast.error('Error generating listening exam');
     } finally {
       setLoading(false);
     }
@@ -151,11 +155,11 @@ const AIExamGenerator: React.FC = () => {
       setResult(data);
       
       if (data.success) {
-        alert(`✅ Writing exam generated successfully!\nExam Set ID: ${data.examSet.examSetId}\nCode: ${data.examSet.examSetCode}`);
+        toast.success(`Writing exam generated successfully!\nExam Set ID: ${data.examSet.examSetId}\nCode: ${data.examSet.examSetCode}`);
       }
     } catch (error) {
       console.error('Error generating writing exam:', error);
-      alert('❌ Error generating writing exam');
+      toast.error('Error generating writing exam');
     } finally {
       setLoading(false);
     }
@@ -180,11 +184,11 @@ const AIExamGenerator: React.FC = () => {
       setResult(data);
       
       if (data.success) {
-        alert(`✅ Speaking exam generated successfully!\nExam Set ID: ${data.examSet.examSetId}\nCode: ${data.examSet.examSetCode}`);
+        toast.success(`Speaking exam generated successfully!\nExam Set ID: ${data.examSet.examSetId}\nCode: ${data.examSet.examSetCode}`);
       }
     } catch (error) {
       console.error('Error generating speaking exam:', error);
-      alert('❌ Error generating speaking exam');
+      toast.error('Error generating speaking exam');
     } finally {
       setLoading(false);
     }

@@ -48,7 +48,7 @@ export default function MentorRequestPage() {
         const txt = await res.text();
         throw new Error(txt || 'Failed to submit mentor request');
       }
-      setMessage('Mentor request submitted successfully. Please wait for admin approval.');
+      setMessage('Your registration has been submitted successfully. Please wait for admin approval.');
     } catch (err: any) {
       setError(err.message || 'An error occurred');
     } finally {
@@ -68,8 +68,8 @@ export default function MentorRequestPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="mb-4">Please login to submit a request.</p>
-          <Link className="text-blue-600" href="/">Go to Home</Link>
+          <p className="mb-4">Please login to continue.</p>
+          <Link className="text-blue-600" href="/">Back to Home</Link>
         </div>
       </div>
     );
@@ -82,12 +82,12 @@ export default function MentorRequestPage() {
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Request to Become Mentor</h1>
-          <p className="text-gray-600">Submit your certificate URL and describe your experience.</p>
+          <p className="text-gray-600">Please upload your certificate and share your experience.</p>
         </div>
 
         {role === 'mentor' && (
           <div className="bg-green-50 border border-green-200 text-green-800 rounded p-4 mb-6">
-            You are already a mentor.
+            You are already registered as a mentor.
           </div>
         )}
 
@@ -99,19 +99,22 @@ export default function MentorRequestPage() {
             <div className="bg-blue-50 border border-blue-200 text-blue-700 rounded p-3">{message}</div>
           )}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Certificate</label>
-            <input
-              type="file"
-              onChange={(e) => setCertificate(e.target.files?.[0] || null)}
-              accept="image/*,.pdf"
-              className="mt-1 block w-full text-sm text-slate-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-full file:border-0
-                file:text-sm file:font-semibold
-                file:bg-blue-50 file:text-blue-700
-                hover:file:bg-blue-100"
-              required
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Certificate</label>
+            <div className="flex items-center gap-2">
+              <label className="cursor-pointer px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-50 rounded-full hover:bg-blue-100">
+                Choose File
+                <input
+                  type="file"
+                  onChange={(e) => setCertificate(e.target.files?.[0] || null)}
+                  accept="image/*,.pdf"
+                  className="hidden"
+                  required
+                />
+              </label>
+              <span className="text-sm text-gray-500">
+                {certificate ? certificate.name : 'No file selected'}
+              </span>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Experience</label>
@@ -120,7 +123,7 @@ export default function MentorRequestPage() {
               onChange={(e) => setExperience(e.target.value)}
               rows={5}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder="Describe your teaching experience, certificates, achievements..."
+              placeholder="Enter your teaching experience, certificates, achievements..."
               required
             />
           </div>

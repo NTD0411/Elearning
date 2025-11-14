@@ -34,6 +34,12 @@ namespace WebRtcApi.Repositories.Auths
                 return null;
             }
 
+            // Check if user status is inactive
+            if (user.Status != null && user.Status.ToLower() == "inactive")
+            {
+                throw new UnauthorizedAccessException("Your account is inactive. Please contact administrator.");
+            }
+
             return await CreateTokenResponse(user);
         }
 
@@ -52,6 +58,7 @@ namespace WebRtcApi.Repositories.Auths
                     Role = "student",
                     Approved = true, // Google users được auto-approve
                     PortraitUrl = request.Image,
+                    Status = "Active", // Set default status for new Google users
                     // Tạo password hash ngẫu nhiên cho Google users (sẽ không dùng)
                     PasswordHash = new PasswordHasher<User>().HashPassword(new User(), Guid.NewGuid().ToString())
                 };
@@ -61,6 +68,12 @@ namespace WebRtcApi.Repositories.Auths
             }
             else
             {
+                // Check if user status is inactive
+                if (user.Status != null && user.Status.ToLower() == "inactive")
+                {
+                    throw new UnauthorizedAccessException("Your account is inactive. Please contact administrator.");
+                }
+
                 // Update thông tin nếu có thay đổi
                 if (!string.IsNullOrEmpty(request.FullName) && user.FullName != request.FullName)
                 {

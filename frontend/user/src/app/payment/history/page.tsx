@@ -20,7 +20,7 @@ export default function PaymentHistoryPage() {
             }
 
             if (status === 'unauthenticated') {
-                setError('Vui lòng đăng nhập để xem lịch sử thanh toán');
+                setError('Please login to view payment history');
                 setLoading(false);
                 return;
             }
@@ -30,7 +30,7 @@ export default function PaymentHistoryPage() {
                 setTransactions(data);
             } catch (err) {
                 console.error('Fetch error:', err);
-                setError(err instanceof Error ? err.message : 'Không thể tải lịch sử thanh toán');
+                setError(err instanceof Error ? err.message : 'Unable to load payment history');
             } finally {
                 setLoading(false);
             }
@@ -62,13 +62,13 @@ export default function PaymentHistoryPage() {
     const getStatusText = (status: string) => {
         switch (status?.toUpperCase()) {
             case TransactionStatus.COMPLETED:
-                return 'Thành công';
+                return 'Completed';
             case TransactionStatus.PENDING:
-                return 'Đang xử lý';
+                return 'Processing';
             case TransactionStatus.FAILED:
-                return 'Thất bại';
+                return 'Failed';
             case TransactionStatus.CANCELLED:
-                return 'Đã hủy';
+                return 'Cancelled';
             default:
                 return status;
         }
@@ -79,7 +79,7 @@ export default function PaymentHistoryPage() {
             <div className="min-h-[60vh] flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Đang tải lịch sử thanh toán...</p>
+                    <p className="text-gray-600 dark:text-gray-400">Loading payment history...</p>
                 </div>
             </div>
         );
@@ -94,7 +94,7 @@ export default function PaymentHistoryPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </div>
-                    <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Lỗi</h2>
+                    <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Error</h2>
                     <p className="text-gray-600 dark:text-gray-400">{error}</p>
                 </div>
             </div>
@@ -104,8 +104,8 @@ export default function PaymentHistoryPage() {
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">Lịch sử thanh toán</h1>
-                <p className="text-gray-600 dark:text-gray-400">Xem tất cả các giao dịch thanh toán của bạn</p>
+                <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">Payment History</h1>
+                <p className="text-gray-600 dark:text-gray-400">View all your payment transactions</p>
             </div>
 
             {/* Filter */}
@@ -119,7 +119,7 @@ export default function PaymentHistoryPage() {
                                 : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                         }`}
                     >
-                        Tất cả
+                        All
                     </button>
                     <button
                         onClick={() => setSelectedStatus(TransactionStatus.COMPLETED)}
@@ -129,7 +129,7 @@ export default function PaymentHistoryPage() {
                                 : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                         }`}
                     >
-                        Thành công
+                        Completed
                     </button>
                     <button
                         onClick={() => setSelectedStatus(TransactionStatus.PENDING)}
@@ -139,7 +139,7 @@ export default function PaymentHistoryPage() {
                                 : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                         }`}
                     >
-                        Đang xử lý
+                        Processing
                     </button>
                     <button
                         onClick={() => setSelectedStatus(TransactionStatus.FAILED)}
@@ -149,7 +149,7 @@ export default function PaymentHistoryPage() {
                                 : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                         }`}
                     >
-                        Thất bại
+                        Failed
                     </button>
                     <button
                         onClick={() => setSelectedStatus(TransactionStatus.CANCELLED)}
@@ -159,7 +159,7 @@ export default function PaymentHistoryPage() {
                                 : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                         }`}
                     >
-                        Đã hủy
+                        Cancelled
                     </button>
                 </div>
             </div>
@@ -180,9 +180,9 @@ export default function PaymentHistoryPage() {
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                         />
                     </svg>
-                    <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Không có giao dịch nào</h3>
+                    <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No Transactions Found</h3>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        Bạn chưa có giao dịch thanh toán nào.
+                        You don't have any payment transactions yet.
                     </p>
                 </div>
             ) : (
@@ -197,10 +197,10 @@ export default function PaymentHistoryPage() {
                                     <div className="flex items-start justify-between mb-2">
                                         <div>
                                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                                {transaction.package?.name || 'Gói không xác định'}
+                                                {transaction.package?.name || 'Unknown Package'}
                                             </h3>
                                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                                Mã đơn: {transaction.orderCode}
+                                                Order ID: {transaction.orderCode}
                                             </p>
                                         </div>
                                         <span
@@ -220,14 +220,14 @@ export default function PaymentHistoryPage() {
 
                                     <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
                                         <span>
-                                            <strong>Thời gian:</strong>{' '}
+                                            <strong>Time:</strong>{' '}
                                             {transaction.createdAt
-                                                ? new Date(transaction.createdAt).toLocaleString('vi-VN')
+                                                ? new Date(transaction.createdAt).toLocaleString('en-US')
                                                 : 'N/A'}
                                         </span>
                                         {transaction.package?.durationMonths && (
                                             <span>
-                                                <strong>Thời hạn:</strong> {transaction.package.durationMonths} tháng
+                                                <strong>Duration:</strong> {transaction.package.durationMonths} months
                                             </span>
                                         )}
                                     </div>

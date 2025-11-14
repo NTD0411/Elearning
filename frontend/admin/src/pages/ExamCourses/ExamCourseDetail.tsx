@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router';
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageMeta from "../../components/common/PageMeta";
+import toast from 'react-hot-toast';
 
 interface ExamSet {
   examSetId: number;
@@ -288,7 +289,10 @@ export default function ExamCourseDetail() {
                     console.log('All questions:', allQuestions);
                     const questionsWithListeningImages = allQuestions.filter(q => q.listeningImage);
                     console.log('Questions with listening images:', questionsWithListeningImages);
-                    alert(`Found ${questionsWithListeningImages.length} questions with listening images. Check console for details.`);
+                                        toast(`Found ${questionsWithListeningImages.length} questions with listening images. Check console for details.`, {
+                      icon: 'ℹ️',
+                      duration: 4000
+                    });
                   }}
                   className="mt-2 bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700"
                 >
@@ -388,7 +392,7 @@ export default function ExamCourseDetail() {
                                     const audio = new Audio(getMediaUrl(question.audioUrl));
                                     audio.play().catch(err => {
                                       console.error('Audio play failed:', err);
-                                      alert('Audio play failed: ' + err.message);
+                                      toast.error('Audio play failed: ' + err.message);
                                     });
                                   }}
                                   className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"

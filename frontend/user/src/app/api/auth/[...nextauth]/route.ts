@@ -37,8 +37,13 @@ const authOptions: NextAuthOptions = {
           })
 
           if (!response.ok) {
-            console.error('Login failed:', response.statusText)
-            return null
+            const errorText = await response.text()
+            console.error('Login failed:', response.status, errorText)
+            // Throw error with message from backend for inactive accounts
+            if (response.status === 401) {
+              throw new Error(errorText || 'Your account is inactive. Please contact administrator.')
+            }
+            throw new Error(errorText || 'Invalid credentials')
           }
 
           const data = await response.json()
@@ -63,8 +68,10 @@ const authOptions: NextAuthOptions = {
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Login error:', error)
+          // Return null để NextAuth hiển thị error
+          // Error message sẽ được pass qua error callback
           return null
         }
       }

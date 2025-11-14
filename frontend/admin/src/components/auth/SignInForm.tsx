@@ -1,14 +1,75 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
+import { apiConfig, apiClient } from "../../services/api";
+import toast from "react-hot-toast";
 
 export default function SignInForm() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${apiConfig.baseURL}${apiConfig.endpoints.auth.login}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: email,
+          passwordHash: password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Login failed:', response.status, errorText);
+        setLoading(false);
+        
+        // Show specific message for inactive accounts
+        if (response.status === 401) {
+          toast.error(errorText || "Your account is inactive. Please contact administrator.");
+        } else {
+          toast.error(errorText || "Invalid credentials");
+        }
+        return;
+      }
+
+      const data = await response.json();
+      
+      // Save token and user info
+      if (data.accessToken) {
+        apiClient.setToken(data.accessToken);
+        localStorage.setItem('admin_user', JSON.stringify(data.user));
+      }
+
+      toast.success("Login successful");
+      setLoading(false);
+      navigate("/");
+    } catch (error: any) {
+      setLoading(false);
+      console.error("Login error:", error);
+      toast.error(error.message || "Login failed");
+    }
+  };
+
   return (
     <div className="flex flex-col flex-1">
       <div className="w-full max-w-md pt-10 mx-auto">
@@ -83,13 +144,17 @@ export default function SignInForm() {
                 </span>
               </div>
             </div>
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="space-y-6">
                 <div>
                   <Label>
                     Email <span className="text-error-500">*</span>{" "}
                   </Label>
-                  <Input placeholder="info@gmail.com" />
+                  <Input 
+                    placeholder="info@gmail.com" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
                 <div>
                   <Label>
@@ -99,6 +164,8 @@ export default function SignInForm() {
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}
@@ -127,8 +194,13 @@ export default function SignInForm() {
                   </Link>
                 </div>
                 <div>
-                  <Button className="w-full" size="sm">
-                    Sign in
+                  <Button 
+                    className="w-full" 
+                    size="sm" 
+                    onClick={handleSubmit}
+                    disabled={loading}
+                  >
+                    {loading ? "Signing in..." : "Sign in"}
                   </Button>
                 </div>
               </div>

@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { UserService } from "../../../services/userService";
 
 import { User } from "../../../types/user";
+import toast from "react-hot-toast";
 
 export default function StudentsTable() {
   const [students, setStudents] = useState<User[]>([]);
@@ -30,7 +31,7 @@ export default function StudentsTable() {
       });
       setStudents(response.users);
     } catch (err) {
-      setError('Không thể tải danh sách học viên');
+      setError('Unable to load student list');
       console.error('Error fetching students:', err);
     } finally {
       setLoading(false);
@@ -46,14 +47,14 @@ export default function StudentsTable() {
       fetchStudents();
     } catch (err) {
       console.error('Error toggling student status:', err);
-      alert('Có lỗi xảy ra khi thay đổi trạng thái học viên');
+      toast.error('An error occurred while changing student status');
     }
   };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500">Đang tải danh sách học viên...</div>
+        <div className="text-gray-500">Loading student list...</div>
       </div>
     );
   }
@@ -78,7 +79,7 @@ export default function StudentsTable() {
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Học viên
+                  Student
                 </TableCell>
                 <TableCell
                   isHeader
@@ -90,31 +91,31 @@ export default function StudentsTable() {
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Địa chỉ
+                  Address
                 </TableCell>
                 <TableCell
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Giới tính
+                  Gender
                 </TableCell>
                 <TableCell
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Trạng thái
+                  Status
                 </TableCell>
                 <TableCell
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Ngày tham gia
+                  Join Date
                 </TableCell>
                 <TableCell
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Hành động
+                  Actions
                 </TableCell>
               </TableRow>
             </TableHeader>
@@ -142,7 +143,7 @@ export default function StudentsTable() {
                       </div>
                       <div>
                         <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                          {student.fullName || 'Chưa có tên'}
+                          {student.fullName || 'No name'}
                         </span>
                         <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
                           ID: {student.userId}
@@ -154,21 +155,21 @@ export default function StudentsTable() {
                     {student.email}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {student.address || 'Chưa có'}
+                    {student.address || 'Not provided'}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {student.gender || 'Chưa rõ'}
+                    {student.gender || 'Unknown'}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                     <Badge
                       size="sm"
                       color={student.status?.toLowerCase() === 'active' ? "success" : "error"}
                     >
-                      {student.status?.toLowerCase() === 'active' ? "Hoạt động" : "Bị khóa"}
+                      {student.status?.toLowerCase() === 'active' ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                    {student.createdAt ? new Date(student.createdAt).toLocaleDateString('vi-VN') : 'Chưa rõ'}
+                    {student.createdAt ? new Date(student.createdAt).toLocaleDateString('vi-VN') : 'Unknown'}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                     <button
@@ -179,7 +180,7 @@ export default function StudentsTable() {
                           : 'bg-green-100 text-green-700 hover:bg-green-200'
                       }`}
                     >
-                      {student.status?.toLowerCase() === 'active' ? 'Khóa' : 'Mở khóa'}
+                      {student.status?.toLowerCase() === 'active' ? 'Lock' : 'Unlock'}
                     </button>
                   </TableCell>
                 </TableRow>
@@ -191,7 +192,7 @@ export default function StudentsTable() {
 
       {students.length === 0 && (
         <div className="flex justify-center items-center h-32">
-          <div className="text-gray-500">Không có học viên nào</div>
+          <div className="text-gray-500">No students found</div>
         </div>
       )}
     </div>

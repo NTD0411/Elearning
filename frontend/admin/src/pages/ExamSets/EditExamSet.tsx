@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
+import toast from 'react-hot-toast';
 
 interface ExamSet {
   id: number;
@@ -80,15 +81,15 @@ export default function EditExamSet() {
       });
 
       if (response.ok) {
-        alert('Exam set updated successfully!');
+        toast.success('Exam set updated successfully!');
         navigate(`/exam-sets/${type}/${id}`);
       } else {
         const error = await response.text();
-        alert(`Error updating exam set: ${error}`);
+        toast.error(`Error updating exam set: ${error}`);
       }
     } catch (error) {
       console.error('Error updating exam set:', error);
-      alert('Failed to update exam set');
+      toast.error('Failed to update exam set');
     } finally {
       setSaving(false);
     }
